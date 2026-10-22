@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
-import { Eye, Activity, ArrowLeft } from 'lucide-react';
+import { Eye, Activity, ArrowLeft, Sparkles } from 'lucide-react';
 import { VisionSimulator } from '../modules/VisionSimulator';
 import { AphasiaLab } from '../modules/AphasiaLab';
+import { AISensoryAgnosiaFilter } from '../modules/AISensoryAgnosiaFilter';
+
+type EmpathySubView = 'vision' | 'sensory-agnosia' | 'aphasia';
 
 interface EmpathyStudioProps {
   onBackToOverview: () => void;
 }
 
 export const EmpathyStudio: React.FC<EmpathyStudioProps> = ({ onBackToOverview }) => {
-  const [subView, setSubView] = useState<'vision' | 'aphasia'>('vision');
+  const [subView, setSubView] = useState<EmpathySubView>('vision');
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', paddingBottom: '70px' }}>
@@ -39,7 +42,7 @@ export const EmpathyStudio: React.FC<EmpathyStudioProps> = ({ onBackToOverview }
               </h2>
             </div>
             <p style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>
-              Firsthand experiential simulation of post-stroke visual field cuts and language barriers
+              Experiential simulation of visual field cuts, AI sensory agnosia breakdown &amp; aphasia language barriers
             </p>
           </div>
         </div>
@@ -47,10 +50,12 @@ export const EmpathyStudio: React.FC<EmpathyStudioProps> = ({ onBackToOverview }
         {/* Segmented Sub-view Switcher */}
         <div style={{
           display: 'flex',
+          flexWrap: 'wrap',
           padding: '4px',
           borderRadius: 'var(--radius-full)',
           backgroundColor: 'var(--bg-surface-sub)',
-          border: '1px solid var(--glass-border)'
+          border: '1px solid var(--glass-border)',
+          gap: '2px'
         }}>
           <button
             onClick={() => setSubView('vision')}
@@ -58,9 +63,9 @@ export const EmpathyStudio: React.FC<EmpathyStudioProps> = ({ onBackToOverview }
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              padding: '6px 16px',
+              padding: '6px 14px',
               borderRadius: 'var(--radius-full)',
-              fontSize: '12.5px',
+              fontSize: '12px',
               fontWeight: subView === 'vision' ? 700 : 500,
               backgroundColor: subView === 'vision' ? 'var(--bg-surface)' : 'transparent',
               color: subView === 'vision' ? 'var(--violet-700)' : 'var(--text-muted)',
@@ -68,8 +73,28 @@ export const EmpathyStudio: React.FC<EmpathyStudioProps> = ({ onBackToOverview }
               transition: 'all 0.15s ease'
             }}
           >
-            <Eye size={14} />
-            <span>Vision Deficits (Webcam / Scenes)</span>
+            <Eye size={13} />
+            <span>Vision Field Deficits</span>
+          </button>
+
+          <button
+            onClick={() => setSubView('sensory-agnosia')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 14px',
+              borderRadius: 'var(--radius-full)',
+              fontSize: '12px',
+              fontWeight: subView === 'sensory-agnosia' ? 700 : 500,
+              backgroundColor: subView === 'sensory-agnosia' ? 'var(--bg-surface)' : 'transparent',
+              color: subView === 'sensory-agnosia' ? 'var(--violet-700)' : 'var(--text-muted)',
+              boxShadow: subView === 'sensory-agnosia' ? 'var(--shadow-subtle)' : 'none',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <Sparkles size={13} />
+            <span>AI Sensory Agnosia Filter</span>
           </button>
 
           <button
@@ -78,9 +103,9 @@ export const EmpathyStudio: React.FC<EmpathyStudioProps> = ({ onBackToOverview }
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              padding: '6px 16px',
+              padding: '6px 14px',
               borderRadius: 'var(--radius-full)',
-              fontSize: '12.5px',
+              fontSize: '12px',
               fontWeight: subView === 'aphasia' ? 700 : 500,
               backgroundColor: subView === 'aphasia' ? 'var(--bg-surface)' : 'transparent',
               color: subView === 'aphasia' ? 'var(--violet-700)' : 'var(--text-muted)',
@@ -88,15 +113,17 @@ export const EmpathyStudio: React.FC<EmpathyStudioProps> = ({ onBackToOverview }
               transition: 'all 0.15s ease'
             }}
           >
-            <Activity size={14} />
-            <span>Aphasia Word-Struggle Lab</span>
+            <Activity size={13} />
+            <span>Aphasia Language Lab</span>
           </button>
         </div>
       </div>
 
       {/* Render Active Tool */}
       <div>
-        {subView === 'vision' ? <VisionSimulator /> : <AphasiaLab />}
+        {subView === 'vision' && <VisionSimulator />}
+        {subView === 'sensory-agnosia' && <AISensoryAgnosiaFilter />}
+        {subView === 'aphasia' && <AphasiaLab />}
       </div>
     </div>
   );
