@@ -1,0 +1,9 @@
+name = "strokesense-proxy"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+
+# Node compatibility for Fetch streaming
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+ENVIRONMENT = "production"
