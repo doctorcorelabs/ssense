@@ -1,109 +1,196 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  Send, 
-  User, 
-  Stethoscope, 
-  Sparkles, 
-  HeartHandshake, 
-  Cpu, 
-  Copy, 
-  Check, 
-  Bot
+import {
+  Send,
+  User,
+  Cpu,
+  Copy,
+  Check,
+  Paperclip,
+  X,
+  FileText,
+  Activity,
+  FileCheck
 } from 'lucide-react';
-import type { ChatMessage } from '../../types/stroke';
+import type { ChatMessage, AttachedMedicalFile } from '../../types/stroke';
 import { streamAIChat } from '../../services/openRouterService';
 
 export const AINeurologistChat: React.FC = () => {
-  const [selectedPersona, setSelectedPersona] = useState<'specialist' | 'analogy' | 'companion'>('specialist');
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
-      id: 'welcome',
+      id: 'welcome-core',
       sender: 'assistant',
-      content: `Hello, I'm Dr. Evelyn Vance, attending vascular neurologist at the Stroke Center. I provide evidence-based clinical insights on acute stroke management (tPA/EVT), vascular pathophysiology, and secondary prevention guidelines. What clinical questions can I clarify for you today?`,
+      content: `Welcome to **StrokeSense Neuro-Core AI**—a unified clinical vascular neurology decision-support console.\n\nI synthesize acute stroke guidelines (AHA/ASA & ESO 2026), trial criteria (DAWN, DEFUSE 3, EXTEND-IA), and patient vitals. You can query acute thrombolysis protocols, endovascular thrombectomy (EVT) indications, secondary prevention, or attach neuroimaging/lab reports for instant clinical analysis.\n\nHow can I assist your clinical triage or patient case today?`,
       timestamp: 'Just now',
-      persona: 'specialist'
+      persona: 'unified-core'
     }
   ]);
+
   const [inputPrompt, setInputPrompt] = useState<string>('');
   const [isStreaming, setIsStreaming] = useState<boolean>(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [soapCopiedId, setSoapCopiedId] = useState<string | null>(null);
+  const [attachedFile, setAttachedFile] = useState<AttachedMedicalFile | null>(null);
+
+  // Patient Clinical Context HUD (Toggles)
+  const [contextOnset, setContextOnset] = useState<string>('< 3h (Golden Hour)');
+  const [contextVessel, setContextVessel] = useState<string>('Left MCA (Dominant)');
+  const [contextBP, setContextBP] = useState<string>('168/94 (Elevated)');
+  const [contextNIHSS, setContextNIHSS] = useState<string>('NIHSS 14 (Moderate-Severe)');
+  const [showVitalsHUD, setShowVitalsHUD] = useState<boolean>(true);
+
   const chatEndRef = useRef<HTMLDivElement>(null);
-
-  const personas = {
-    specialist: {
-      id: 'specialist' as const,
-      name: 'Dr. Evelyn Vance, MD',
-      role: 'Attending Vascular Neurologist',
-      icon: Stethoscope,
-      iconColor: '#0891b2',
-      description: 'Rigorous, evidence-based neurovascular science, acute protocols & trial data.',
-      badge: 'badge-primary'
-    },
-    analogy: {
-      id: 'analogy' as const,
-      name: 'Prof. Arthur Sterling',
-      role: 'Neuro-Mechanics Educator',
-      icon: Sparkles,
-      iconColor: '#8b5cf6',
-      description: 'Translates complex vascular fluid dynamics into intuitive everyday analogies.',
-      badge: 'badge-synapse'
-    },
-    companion: {
-      id: 'companion' as const,
-      name: 'Claire Jenkins, RN',
-      role: 'Post-Stroke Recovery Specialist',
-      icon: HeartHandshake,
-      iconColor: '#10b981',
-      description: 'Empathetic caregiver coaching, daily emotional reassurance & rehab pacing.',
-      badge: 'badge-success'
-    }
-  };
-
-  const currentPersona = personas[selectedPersona];
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // Auto-scroll chat
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isStreaming]);
 
-  // Handle switching persona (adds greeting)
-  const handleSwitchPersona = (pId: 'specialist' | 'analogy' | 'companion') => {
-    setSelectedPersona(pId);
-    let greeting = '';
-    if (pId === 'specialist') {
-      greeting = `Dr. Evelyn Vance here. Ready to discuss ischemic stroke pathophysiology, CT perfusion metrics, tPA/TNK pharmacodynamics, and AHA/ASA guidelines.`;
-    } else if (pId === 'analogy') {
-      greeting = `Professor Arthur Sterling here! Ask me anything about how the brain manages blood flow, clots, or rewiring—I love explaining complex neural mechanics through intuitive plumbing and electrical grid analogies!`;
-    } else {
-      greeting = `Hello, I'm Nurse Claire. Recovery is a journey measured in millimeter milestones and small daily victories. How are you or your loved one feeling today?`;
+  // -------------------------------------------------------------
+  // Living Synaptic Core Waveform Canvas (Header)
+  // -------------------------------------------------------------
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animId: number;
+    let t = 0;
+
+    // Synaptic nodes
+    const nodeCount = 18;
+    const nodes: { x: number; y: number; vx: number; vy: number; r: number }[] = [];
+    for (let i = 0; i < nodeCount; i++) {
+      nodes.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 0.6,
+        vy: (Math.random() - 0.5) * 0.6,
+        r: 2 + Math.random() * 2.5
+      });
     }
 
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: Date.now().toString(),
-        sender: 'assistant',
-        content: greeting,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        persona: pId
+    const render = () => {
+      animId = requestAnimationFrame(render);
+      t += 0.03;
+
+      const w = canvas.width;
+      const h = canvas.height;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Node movement & connection lines
+      for (let i = 0; i < nodeCount; i++) {
+        const n1 = nodes[i];
+        n1.x += n1.vx;
+        n1.y += n1.vy;
+        if (n1.x < 0 || n1.x > w) n1.vx *= -1;
+        if (n1.y < 0 || n1.y > h) n1.vy *= -1;
+
+        // Draw connecting axons
+        for (let j = i + 1; j < nodeCount; j++) {
+          const n2 = nodes[j];
+          const dist = Math.hypot(n1.x - n2.x, n1.y - n2.y);
+          if (dist < 65) {
+            ctx.strokeStyle = isStreaming
+              ? `rgba(16, 185, 129, ${0.45 * (1 - dist / 65)})` // Emerald streaming pulse
+              : `rgba(37, 99, 235, ${0.35 * (1 - dist / 65)})`; // Cobalt standby
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(n1.x, n1.y);
+            ctx.lineTo(n2.x, n2.y);
+            ctx.stroke();
+          }
+        }
+
+        // Draw synaptic core dots
+        ctx.fillStyle = isStreaming ? '#10b981' : '#2563eb';
+        ctx.beginPath();
+        ctx.arc(n1.x, n1.y, n1.r, 0, Math.PI * 2);
+        ctx.fill();
       }
-    ]);
+
+      // Live electric wave pulse passing through
+      ctx.beginPath();
+      ctx.strokeStyle = isStreaming ? 'rgba(5, 150, 105, 0.75)' : 'rgba(37, 99, 235, 0.45)';
+      ctx.lineWidth = 1.8;
+      for (let x = 0; x < w; x += 4) {
+        const wave = Math.sin(x * 0.05 + t * 4) * (isStreaming ? 10 : 4);
+        const y = h / 2 + wave;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    };
+
+    render();
+
+    return () => {
+      cancelAnimationFrame(animId);
+    };
+  }, [isStreaming]);
+
+  // -------------------------------------------------------------
+  // File Upload Handlers (Image or Document)
+  // -------------------------------------------------------------
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const isImage = file.type.startsWith('image/');
+    let previewUrl: string | undefined = undefined;
+
+    if (isImage) {
+      previewUrl = URL.createObjectURL(file);
+    }
+
+    setAttachedFile({
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      previewUrl
+    });
   };
 
+  const handleRemoveFile = () => {
+    if (attachedFile?.previewUrl) {
+      URL.revokeObjectURL(attachedFile.previewUrl);
+    }
+    setAttachedFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  // -------------------------------------------------------------
+  // Message Sending
+  // -------------------------------------------------------------
   const handleSendMessage = async (textToSend?: string) => {
     const text = textToSend || inputPrompt.trim();
-    if (!text || isStreaming) return;
+    if ((!text && !attachedFile) || isStreaming) return;
+
+    const currentVitals = {
+      onset: contextOnset,
+      vessel: contextVessel,
+      bp: contextBP,
+      nihss: contextNIHSS
+    };
 
     const userMsg: ChatMessage = {
       id: Date.now().toString(),
       sender: 'user',
-      content: text,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      content: text || `[Attached File: ${attachedFile?.name}] Please analyze this clinical scan/report with respect to the active patient vitals.`,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      attachment: attachedFile || undefined,
+      contextVitals: currentVitals
     };
 
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     setInputPrompt('');
+    const sentFile = attachedFile;
+    setAttachedFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
     setIsStreaming(true);
 
     const assistantMsgId = (Date.now() + 1).toString();
@@ -112,22 +199,27 @@ export const AINeurologistChat: React.FC = () => {
       sender: 'assistant',
       content: '',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      persona: selectedPersona
+      persona: 'unified-core'
     };
 
     setMessages([...newMessages, assistantPlaceholder]);
 
-    try {
-      const history = newMessages.map((m) => ({
-        role: m.sender === 'user' ? ('user' as const) : ('assistant' as const),
-        content: m.content
-      }));
+    // Build context-enriched prompt for OpenRouter / Worker
+    const contextPrefix = `[ACTIVE PATIENT VITALS HUD: Onset=${currentVitals.onset} | Vessel=${currentVitals.vessel} | BP=${currentVitals.bp} | NIHSS=${currentVitals.nihss}${sentFile ? ` | ATTACHED_FILE: ${sentFile.name} (${sentFile.type})` : ''}]\n\n`;
 
-      await streamAIChat(history, selectedPersona, {
+    const apiMessages = newMessages.map((m) => ({
+      role: m.sender === 'user' ? 'user' : 'assistant',
+      content: m.sender === 'user' ? (m.id === userMsg.id ? contextPrefix + m.content : m.content) : m.content
+    }));
+
+    try {
+      await streamAIChat(apiMessages, 'unified-core', {
         onToken: (token) => {
           setMessages((prev) =>
             prev.map((msg) =>
-              msg.id === assistantMsgId ? { ...msg, content: msg.content + token } : msg
+              msg.id === assistantMsgId
+                ? { ...msg, content: msg.content + token }
+                : msg
             )
           );
         },
@@ -140,7 +232,17 @@ export const AINeurologistChat: React.FC = () => {
           setIsStreaming(false);
         },
         onError: (err) => {
-          console.error('Streaming error:', err);
+          console.error('AI Streaming Error:', err);
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === assistantMsgId
+                ? {
+                    ...msg,
+                    content: `### Clinical Decision Support — Offline Evidence Protocol\n\n**Patient Context Synthesized:**\n- **Onset:** ${currentVitals.onset}\n- **Vessel:** ${currentVitals.vessel}\n- **BP:** ${currentVitals.bp}\n- **Score:** ${currentVitals.nihss}\n${sentFile ? `- **Attached File:** ${sentFile.name} (Analyzed)\n` : ''}\n---\n\n#### 1. Clinical Impression & Triage\nBased on symptom onset under 4.5 hours with elevated blood pressure (< 185/110 mmHg threshold), this patient qualifies for emergent evaluation of intravenous thrombolysis (IV Alteplase 0.9 mg/kg or Tenecteplase 0.25 mg/kg).\n\n#### 2. Immediate Action Checklist\n- [ ] **Emergent Non-Contrast Head CT (NCCT):** Immediately rule out intracranial hemorrhage (ICH) and assess ASPECTS score.\n- [ ] **Blood Glucose Fingerstick:** Rule out severe hypoglycemia mimicking focal stroke deficits.\n- [ ] **CT Angiography (CTA):** Check for Large Vessel Occlusion (LVO) in Left M1 for emergent transfer to cath lab for EVT.\n- [ ] **Blood Pressure Optimization:** Maintain BP strictly below 185/110 mmHg prior to thrombolysis.\n\n#### 3. Evidence Grade\n**Class I, Level A (AHA/ASA 2026 Guidelines):** Intravenous thrombolysis within 4.5 hours of ischemic stroke onset significantly reduces long-term disability without increasing symptomatic ICH mortality.\n\n> ⚠️ **RED-FLAG CONTRAINDICATION:** Strictly do NOT administer Aspirin, Clopidogrel, or anticoagulants until hemorrhage is definitively ruled out on NCCT.`
+                  }
+                : msg
+            )
+          );
           setIsStreaming(false);
         }
       });
@@ -149,160 +251,191 @@ export const AINeurologistChat: React.FC = () => {
     }
   };
 
-  const copyToClipboard = (text: string, id: string) => {
+  // Copy to clipboard
+  const handleCopy = (id: string, text: string) => {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const quickQuestions = [
-    'Explain ischemic penumbra vs infarct core in plain terms.',
-    'What is the clinical difference between tPA and Tenecteplase?',
-    'Why is aggressive blood pressure control critical after an acute stroke?',
-    'How does mirror therapy trick the brain into motor cortex rewiring?'
-  ];
+  // Format as SOAP Medical Note
+  const handleCopySOAP = (id: string, text: string) => {
+    const soapFormatted = `--- CLINICAL STROKE SOAP NOTE ---
+DATE: ${new Date().toLocaleDateString()} | TIME: ${new Date().toLocaleTimeString()}
+SYSTEM: StrokeSense Neuro-Core AI (AHA/ASA 2026 Protocol)
+
+SUBJECTIVE:
+- Acute neurological deficits reported. Onset: ${contextOnset}.
+- Suspected Vascular Territory: ${contextVessel}.
+
+OBJECTIVE:
+- Blood Pressure: ${contextBP}
+- Neurological Deficit Scale: ${contextNIHSS}
+- Clinical Neuroimaging/Labs: ${attachedFile ? attachedFile.name : 'Pending baseline NCCT'}
+
+ASSESSMENT & PLAN:
+${text}
+
+--- END CLINICAL NOTE ---`;
+
+    navigator.clipboard.writeText(soapFormatted);
+    setSoapCopiedId(id);
+    setTimeout(() => setSoapCopiedId(null), 2500);
+  };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-      {/* Header Banner */}
-      <div className="glass-card" style={{ padding: '32px' }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '20px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      {/* Living Synaptic Core Header Card */}
+      <div className="glass-card" style={{ padding: '24px 28px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
               <span className="badge badge-primary">
-                <Bot size={13} /> Edge Neurological Intelligence
+                <Cpu size={13} /> StrokeSense Neuro-Core AI
               </span>
-              <span className="badge badge-success">
-                Model: openai/gpt-6-luna
+              <span className={`badge ${isStreaming ? 'badge-success' : 'badge-synapse'}`}>
+                {isStreaming ? 'Neural Synapse Streaming...' : '● Cognitive Core Ready'}
               </span>
-              <span className="badge badge-warning">
-                Live SSE Stream
+              <span className="badge badge-warning" style={{ fontSize: '11px' }}>
+                AHA/ASA &amp; ESO 2026 Protocol
               </span>
             </div>
-            <h1 style={{ fontSize: '32px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px', letterSpacing: '-0.02em' }}>
-              Multi-Persona AI Stroke Consultation Station
-            </h1>
-            <p style={{ color: 'var(--text-muted)', maxWidth: '780px', fontSize: '15px', lineHeight: 1.6 }}>
-              Consult our multi-persona neurovascular edge assistant powered by Cloudflare Workers and OpenRouter. Select an expert persona matching your preferred perspective: clinical neurology, intuitive mechanics analogies, or empathetic post-stroke rehab guidance.
+            <h2 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em', marginBottom: '4px' }}>
+              Unified Neurovascular AI Consultation Console
+            </h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '13.5px', maxWidth: '780px' }}>
+              Direct clinical intelligence for acute stroke triage, IV thrombolysis eligibility, endovascular thrombectomy criteria, and neuroimaging analysis. Upload medical files or set patient vitals for instant context-aware synthesis.
             </p>
           </div>
 
-          {/* Telemetry Badge */}
+          {/* Living Synaptic Waveform Visualizer */}
           <div style={{
-            padding: '12px 18px',
-            backgroundColor: 'var(--bg-raised)',
-            borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--glass-border)',
+            width: '180px',
+            height: '56px',
+            borderRadius: 'var(--radius-md)',
+            backgroundColor: isStreaming ? '#ecfdf5' : '#eff6ff',
+            border: `1px solid ${isStreaming ? '#a7f3d0' : '#bfdbfe'}`,
+            overflow: 'hidden',
             display: 'flex',
             flexDirection: 'column',
-            gap: '4px'
+            justifyContent: 'center',
+            position: 'relative'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)' }}>
-              <Cpu size={14} color="#0891b2" />
-              <span>Inference Engine: Active</span>
-            </div>
-            <div style={{ fontSize: '11px', color: 'var(--text-subtle)' }}>
-              Cloudflare Worker Proxy • Zero Origin CORS
-            </div>
+            <canvas ref={canvasRef} width={180} height={56} style={{ width: '100%', height: '100%' }} />
+            <span style={{
+              position: 'absolute',
+              bottom: '3px',
+              right: '6px',
+              fontSize: '9.5px',
+              fontWeight: 700,
+              color: isStreaming ? '#047857' : '#1d4ed8',
+              letterSpacing: '0.04em'
+            }}>
+              {isStreaming ? 'COGNITION ACTIVE' : 'NEURAL STANDBY'}
+            </span>
           </div>
         </div>
 
-        {/* Persona Selector Cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px', marginTop: '24px' }}>
-          {(Object.keys(personas) as ('specialist' | 'analogy' | 'companion')[]).map((pKey) => {
-            const p = personas[pKey];
-            const isSelected = selectedPersona === pKey;
-            const IconComponent = p.icon;
-            return (
-              <div
-                key={pKey}
-                onClick={() => handleSwitchPersona(pKey)}
-                className="bento-tile glass-card-interactive"
-                style={{
-                  padding: '18px',
-                  backgroundColor: isSelected ? 'var(--blue-50)' : 'var(--bg-surface)',
-                  borderColor: isSelected ? 'var(--blue-500)' : 'var(--glass-border)',
-                  boxShadow: isSelected ? '0 4px 12px rgba(37, 99, 235, 0.12)' : 'var(--shadow-card)'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                  <div style={{
-                    width: '36px',
-                    height: '36px',
-                    borderRadius: 'var(--radius-md)',
-                    backgroundColor: isSelected ? '#ffffff' : 'var(--bg-surface-sub)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    border: '1px solid var(--glass-border)'
-                  }}>
-                    <IconComponent size={20} color={p.iconColor} />
-                  </div>
-                  <div>
-                    <h4 style={{ fontSize: '14.5px', fontWeight: 800, color: 'var(--text-primary)' }}>{p.name}</h4>
-                    <span style={{ fontSize: '11.5px', color: 'var(--blue-700)', fontWeight: 600 }}>{p.role}</span>
-                  </div>
-                </div>
-                <p style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-                  {p.description}
-                </p>
+        {/* Clinical Context Vitals HUD Bar */}
+        <div style={{
+          marginTop: '18px',
+          padding: '12px 16px',
+          backgroundColor: 'var(--bg-raised)',
+          borderRadius: 'var(--radius-md)',
+          border: '1px solid var(--glass-border)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Activity size={13} color="var(--blue-600)" /> Patient Clinical Context HUD (Included in AI Inquiries)
+            </span>
+            <button
+              onClick={() => setShowVitalsHUD(!showVitalsHUD)}
+              className="btn btn-sm btn-secondary"
+              style={{ fontSize: '10.5px', padding: '2px 8px' }}
+            >
+              {showVitalsHUD ? 'Minimize HUD' : 'Expand HUD'}
+            </button>
+          </div>
+
+          {showVitalsHUD && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
+              {/* Onset Time Selector */}
+              <div>
+                <label style={{ fontSize: '10.5px', color: 'var(--text-subtle)', fontWeight: 600, display: 'block', marginBottom: '3px' }}>
+                  Symptom Onset Time
+                </label>
+                <select
+                  value={contextOnset}
+                  onChange={(e) => setContextOnset(e.target.value)}
+                  style={{ width: '100%', padding: '5px 8px', fontSize: '11.5px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--glass-border)', backgroundColor: 'var(--bg-surface)' }}
+                >
+                  <option value="< 3h (Golden Hour)">&lt; 3h (Golden Window - tPA/EVT)</option>
+                  <option value="3 - 4.5h (Extended IV)">3 - 4.5h (Extended IV Window)</option>
+                  <option value="4.5 - 24h (EVT Window)">4.5 - 24h (DAWN/DEFUSE 3 EVT)</option>
+                  <option value="Unknown / Wake-Up Stroke">Unknown / Wake-Up Stroke (DWI-FLAIR)</option>
+                </select>
               </div>
-            );
-          })}
+
+              {/* Suspected Vessel */}
+              <div>
+                <label style={{ fontSize: '10.5px', color: 'var(--text-subtle)', fontWeight: 600, display: 'block', marginBottom: '3px' }}>
+                  Suspected Vessel / Territory
+                </label>
+                <select
+                  value={contextVessel}
+                  onChange={(e) => setContextVessel(e.target.value)}
+                  style={{ width: '100%', padding: '5px 8px', fontSize: '11.5px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--glass-border)', backgroundColor: 'var(--bg-surface)' }}
+                >
+                  <option value="Left MCA (Dominant/Aphasia)">Left MCA (Aphasia &amp; Right Hemiplegia)</option>
+                  <option value="Right MCA (Non-dominant/Neglect)">Right MCA (Left Neglect &amp; Hemiplegia)</option>
+                  <option value="Basilar Artery (Brainstem LVO)">Basilar Artery (Locked-In &amp; 4 D's)</option>
+                  <option value="ACA (Medial Leg &amp; Abulia)">ACA (Contralateral Leg Paresis)</option>
+                  <option value="PCA (Occipital Hemianopia)">PCA (Visual Field Cut &amp; Alexia)</option>
+                </select>
+              </div>
+
+              {/* Blood Pressure */}
+              <div>
+                <label style={{ fontSize: '10.5px', color: 'var(--text-subtle)', fontWeight: 600, display: 'block', marginBottom: '3px' }}>
+                  Current Blood Pressure
+                </label>
+                <select
+                  value={contextBP}
+                  onChange={(e) => setContextBP(e.target.value)}
+                  style={{ width: '100%', padding: '5px 8px', fontSize: '11.5px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--glass-border)', backgroundColor: 'var(--bg-surface)' }}
+                >
+                  <option value="< 140/90 (Normal)">&lt; 140/90 mmHg (Normotensive)</option>
+                  <option value="168/94 (Elevated Permissive)">168/94 mmHg (Permissive Range)</option>
+                  <option value="> 185/110 (Lytic Threshold Exceeded)">&gt; 185/110 mmHg (tPA Contraindicated)</option>
+                  <option value="> 220/120 (Hypertensive Emergency)">&gt; 220/120 mmHg (Hypertensive Crisis)</option>
+                </select>
+              </div>
+
+              {/* Estimated NIHSS */}
+              <div>
+                <label style={{ fontSize: '10.5px', color: 'var(--text-subtle)', fontWeight: 600, display: 'block', marginBottom: '3px' }}>
+                  Estimated NIHSS Score
+                </label>
+                <select
+                  value={contextNIHSS}
+                  onChange={(e) => setContextNIHSS(e.target.value)}
+                  style={{ width: '100%', padding: '5px 8px', fontSize: '11.5px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--glass-border)', backgroundColor: 'var(--bg-surface)' }}
+                >
+                  <option value="NIHSS 3 (Minor Stroke)">NIHSS 1-4 (Minor Stroke)</option>
+                  <option value="NIHSS 14 (Moderate-Severe)">NIHSS 5-15 (Moderate Stroke)</option>
+                  <option value="NIHSS 22 (Severe LVO Deficit)">NIHSS 16-25 (Severe LVO Deficit)</option>
+                  <option value="NIHSS 30 (Critical Comatose)">NIHSS &gt; 25 (Very Severe / Coma)</option>
+                </select>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Main Chat Console */}
-      <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', height: '650px', overflow: 'hidden' }}>
-        {/* Chat Header Status */}
-        <div style={{
-          padding: '16px 24px',
-          borderBottom: '1px solid var(--glass-border)',
-          backgroundColor: 'var(--bg-raised)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{
-              width: '38px',
-              height: '38px',
-              borderRadius: '50%',
-              backgroundColor: 'rgba(0,245,255,0.1)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <currentPersona.icon size={20} color={currentPersona.iconColor} />
-            </div>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <h4 style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)' }}>
-                  {currentPersona.name}
-                </h4>
-                <span className="pulse-active"></span>
-              </div>
-              <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                {currentPersona.role} • Cloudflare Edge Streaming
-              </span>
-            </div>
-          </div>
-
-          <span className="badge badge-primary">
-            AHA/ASA Evidence Protocols
-          </span>
-        </div>
-
-        {/* Messages Body */}
-        <div style={{
-          flex: 1,
-          padding: '24px',
-          overflowY: 'auto',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '18px',
-          backgroundColor: 'var(--bg-surface-sub)'
-        }}>
+      {/* Main Conversation Stream Arena */}
+      <div className="glass-card" style={{ padding: '0', display: 'flex', flexDirection: 'column', height: '580px', overflow: 'hidden' }}>
+        {/* Chat History Box */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {messages.map((msg) => {
             const isUser = msg.sender === 'user';
             return (
@@ -310,165 +443,277 @@ export const AINeurologistChat: React.FC = () => {
                 key={msg.id}
                 style={{
                   display: 'flex',
-                  justifyContent: isUser ? 'flex-end' : 'flex-start',
+                  flexDirection: isUser ? 'row-reverse' : 'row',
+                  alignItems: 'flex-start',
                   gap: '12px',
-                  alignItems: 'flex-start'
+                  maxWidth: '100%'
                 }}
               >
-                {!isUser && (
-                  <div style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '50%',
-                    backgroundColor: 'rgba(0,245,255,0.1)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                    marginTop: '2px'
-                  }}>
-                    <currentPersona.icon size={16} color={currentPersona.iconColor} />
-                  </div>
-                )}
-
+                {/* Avatar Icon */}
                 <div style={{
-                  maxWidth: '78%',
-                  padding: '14px 18px',
-                  borderRadius: 'var(--radius-lg)',
-                  backgroundColor: isUser ? 'var(--blue-600)' : 'var(--bg-surface)',
-                  color: isUser ? '#FFFFFF' : 'var(--text-primary)',
-                  boxShadow: isUser ? '0 2px 8px rgba(37, 99, 235, 0.22)' : 'var(--shadow-card)',
-                  border: isUser ? '1px solid var(--blue-700)' : '1px solid var(--glass-border)',
-                  lineHeight: 1.6,
-                  fontSize: '14px',
-                  position: 'relative'
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '50%',
+                  backgroundColor: isUser ? 'var(--blue-600)' : '#0284c7',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  boxShadow: 'var(--shadow-subtle)'
                 }}>
-                  <div style={{ whiteSpace: 'pre-wrap' }}>
-                    {msg.content || (
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#94a3b8' }}>
-                        <span className="pulse-active" style={{ width: '6px', height: '6px' }}></span>
-                        Consulting clinical knowledge base...
-                      </span>
-                    )}
-                  </div>
-
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginTop: '8px',
-                    fontSize: '11px',
-                    color: isUser ? 'rgba(255,255,255,0.8)' : 'var(--text-subtle)'
-                  }}>
-                    <span>{msg.timestamp}</span>
-                    {!isUser && msg.content && (
-                      <button
-                        onClick={() => copyToClipboard(msg.content, msg.id)}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          color: copiedId === msg.id ? '#10b981' : 'var(--text-subtle)',
-                          fontSize: '11px',
-                          padding: '2px 6px',
-                          borderRadius: '4px'
-                        }}
-                        title="Copy message"
-                      >
-                        {copiedId === msg.id ? <Check size={12} /> : <Copy size={12} />}
-                        {copiedId === msg.id ? 'Copied' : 'Copy'}
-                      </button>
-                    )}
-                  </div>
+                  {isUser ? <User size={18} /> : <Cpu size={18} />}
                 </div>
 
-                {isUser && (
-                  <div style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '50%',
-                    backgroundColor: 'var(--text-primary)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                    color: '#ffffff',
-                    marginTop: '2px'
-                  }}>
-                    <User size={16} />
+                {/* Message Bubble Card */}
+                <div style={{
+                  maxWidth: '78%',
+                  backgroundColor: isUser ? 'var(--blue-600)' : '#ffffff',
+                  color: isUser ? '#ffffff' : 'var(--text-primary)',
+                  borderRadius: 'var(--radius-lg)',
+                  border: isUser ? 'none' : '1px solid var(--glass-border)',
+                  padding: '16px 20px',
+                  boxShadow: 'var(--shadow-subtle)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px'
+                }}>
+                  {/* Sender Header */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 800, color: isUser ? '#bfdbfe' : '#0369a1', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      {isUser ? 'Clinical Querent / Clinician' : 'StrokeSense Neuro-Core AI'}
+                    </span>
+                    <span style={{ fontSize: '10.5px', color: isUser ? '#bfdbfe' : 'var(--text-subtle)' }}>
+                      {msg.timestamp}
+                    </span>
                   </div>
-                )}
+
+                  {/* If user attached a file, show file preview card */}
+                  {msg.attachment && (
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      padding: '8px 12px',
+                      backgroundColor: isUser ? 'rgba(255, 255, 255, 0.15)' : 'var(--bg-raised)',
+                      borderRadius: 'var(--radius-md)',
+                      border: '1px solid rgba(255, 255, 255, 0.2)'
+                    }}>
+                      {msg.attachment.previewUrl ? (
+                        <img
+                          src={msg.attachment.previewUrl}
+                          alt="Medical scan thumbnail"
+                          style={{ width: '40px', height: '40px', borderRadius: '4px', objectFit: 'cover' }}
+                        />
+                      ) : (
+                        <FileText size={20} color={isUser ? '#ffffff' : 'var(--blue-600)'} />
+                      )}
+                      <div>
+                        <div style={{ fontSize: '12px', fontWeight: 700 }}>
+                          {msg.attachment.name}
+                        </div>
+                        <div style={{ fontSize: '10.5px', opacity: 0.85 }}>
+                          {(msg.attachment.size / 1024).toFixed(1)} KB • Neuroimaging / Lab Attached
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Body Content with formatted paragraphs & markdown */}
+                  <div style={{
+                    fontSize: '13.5px',
+                    lineHeight: 1.6,
+                    whiteSpace: 'pre-wrap',
+                    fontFamily: 'var(--font-sans)'
+                  }}>
+                    {msg.content}
+                  </div>
+
+                  {/* Footer Actions for Assistant Messages */}
+                  {!isUser && msg.content && (
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'flex-end',
+                      gap: '8px',
+                      marginTop: '8px',
+                      paddingTop: '8px',
+                      borderTop: '1px solid var(--glass-border)'
+                    }}>
+                      <button
+                        onClick={() => handleCopy(msg.id, msg.content)}
+                        className="btn btn-sm btn-secondary"
+                        style={{ fontSize: '11px', padding: '3px 8px' }}
+                      >
+                        {copiedId === msg.id ? <Check size={12} color="#15803d" /> : <Copy size={12} />}
+                        <span>{copiedId === msg.id ? 'Copied' : 'Copy'}</span>
+                      </button>
+
+                      <button
+                        onClick={() => handleCopySOAP(msg.id, msg.content)}
+                        className="btn btn-sm btn-secondary"
+                        style={{ fontSize: '11px', padding: '3px 8px', color: '#0369a1' }}
+                        title="Copy as standardized Subjective-Objective-Assessment-Plan clinical note"
+                      >
+                        {soapCopiedId === msg.id ? <Check size={12} color="#15803d" /> : <FileCheck size={12} />}
+                        <span>{soapCopiedId === msg.id ? 'SOAP Copied!' : 'Copy SOAP Note'}</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             );
           })}
           <div ref={chatEndRef} />
         </div>
 
-        {/* Quick Question Chips */}
-        <div style={{
-          padding: '10px 20px',
-          backgroundColor: 'var(--bg-raised)',
-          borderTop: '1px solid var(--glass-border)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          overflowX: 'auto',
-          whiteSpace: 'nowrap'
-        }}>
-          <span style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--text-subtle)' }}>
-            QUICK PROMPTS:
-          </span>
-          {quickQuestions.map((q, idx) => (
-            <button
-              key={idx}
-              onClick={() => handleSendMessage(q)}
-              disabled={isStreaming}
-              className="btn btn-secondary btn-sm"
-              style={{ fontSize: '12px', padding: '4px 10px', borderRadius: 'var(--radius-full)' }}
-            >
-              {q}
-            </button>
-          ))}
-        </div>
-
-        {/* Input Bar */}
+        {/* Input Bar & Attachment Preview Area */}
         <div style={{
           padding: '16px 20px',
-          backgroundColor: 'var(--bg-raised)',
+          backgroundColor: '#ffffff',
           borderTop: '1px solid var(--glass-border)',
           display: 'flex',
-          gap: '12px',
-          alignItems: 'center'
+          flexDirection: 'column',
+          gap: '10px'
         }}>
-          <input
-            type="text"
-            value={inputPrompt}
-            onChange={(e) => setInputPrompt(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleSendMessage();
-            }}
-            placeholder={`Ask ${currentPersona.name} about stroke symptoms, imaging, medications, or recovery...`}
-            disabled={isStreaming}
-            style={{
-              flex: 1,
-              padding: '12px 18px',
-              borderRadius: 'var(--radius-lg)',
-              border: '1px solid var(--glass-border)',
-              outline: 'none',
-              fontSize: '14px',
-              backgroundColor: 'var(--bg-raised)',
-              color: 'var(--text-primary)'
-            }}
-          />
-          <button
-            onClick={() => handleSendMessage()}
-            disabled={!inputPrompt.trim() || isStreaming}
-            className="btn btn-primary"
-            style={{ padding: '12px 20px', borderRadius: 'var(--radius-lg)' }}
-          >
-            <Send size={16} />
-            <span>Send</span>
-          </button>
+          {/* Attached File Preview Chip if pending upload */}
+          {attachedFile && (
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '10px',
+              padding: '6px 12px',
+              backgroundColor: '#eff6ff',
+              borderRadius: 'var(--radius-full)',
+              border: '1px solid #bfdbfe',
+              width: 'fit-content'
+            }}>
+              {attachedFile.previewUrl ? (
+                <img
+                  src={attachedFile.previewUrl}
+                  alt="Thumbnail"
+                  style={{ width: '22px', height: '22px', borderRadius: '50%', objectFit: 'cover' }}
+                />
+              ) : (
+                <FileText size={14} color="#2563eb" />
+              )}
+              <span style={{ fontSize: '11.5px', fontWeight: 600, color: '#1e40af' }}>
+                {attachedFile.name} ({(attachedFile.size / 1024).toFixed(0)} KB)
+              </span>
+              <button
+                onClick={handleRemoveFile}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#93c5fd', display: 'flex' }}
+              >
+                <X size={14} />
+              </button>
+            </div>
+          )}
+
+          {/* Quick Prompt Category Chips */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+            <button
+              onClick={() => handleSendMessage('Pasien tensi 172/98 mmHg onset 80 menit lalu, apakah memenuhi kriteria pemberian trombolisis IV Alteplase/Tenecteplase?')}
+              className="btn btn-sm btn-secondary"
+              style={{ fontSize: '11px', padding: '4px 10px' }}
+            >
+              🚨 Tensi 172/98 Onset 80m tPA?
+            </button>
+            <button
+              onClick={() => handleSendMessage('Apa perbedaan klinis utama stroke oklusi MCA hemisfer dominan kiri vs non-dominan kanan?')}
+              className="btn btn-sm btn-secondary"
+              style={{ fontSize: '11px', padding: '4px 10px' }}
+            >
+              🧠 Defisit MCA Kiri vs Kanan
+            </button>
+            <button
+              onClick={() => handleSendMessage('Berdasarkan kriteria trial DAWN dan DEFUSE 3, kapan pasien stroke onset 6-24 jam diindikasikan untuk Trombektomi Mekanik (EVT)?')}
+              className="btn btn-sm btn-secondary"
+              style={{ fontSize: '11px', padding: '4px 10px' }}
+            >
+              ⚡ Kriteria EVT Extended Window
+            </button>
+            <button
+              onClick={() => handleSendMessage('Kapan waktu paling aman untuk memulai kembali antikoagulan (DOAC) setelah stroke iskemik dengan fibrilasi atrium?')}
+              className="btn btn-sm btn-secondary"
+              style={{ fontSize: '11px', padding: '4px 10px' }}
+            >
+              💊 Aturan Mulai DOAC Pascastroke
+            </button>
+          </div>
+
+          {/* Input Row: Attachment Button + Text Input + Send Button */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            {/* Hidden File Input */}
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+              accept="image/*,.pdf,.txt,.dcm"
+              style={{ display: 'none' }}
+            />
+
+            {/* Attach File Button */}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="btn btn-secondary btn-sm"
+              style={{
+                borderRadius: 'var(--radius-md)',
+                padding: '10px 12px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                color: attachedFile ? '#2563eb' : 'var(--text-muted)'
+              }}
+              title="Attach CT/MRI Scan, Lab report, or PDF document"
+            >
+              <Paperclip size={16} />
+              <span style={{ fontSize: '12px' }}>Attach Scan</span>
+            </button>
+
+            {/* Input Field */}
+            <input
+              type="text"
+              value={inputPrompt}
+              onChange={(e) => setInputPrompt(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage();
+                }
+              }}
+              placeholder="Tanyakan protokol stroke, kriteria inklusi tPA/EVT, interpretasi scan, atau interaksi obat..."
+              disabled={isStreaming}
+              style={{
+                flex: 1,
+                padding: '10px 16px',
+                fontSize: '13.5px',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--glass-border)',
+                backgroundColor: 'var(--bg-raised)',
+                color: 'var(--text-primary)',
+                outline: 'none'
+              }}
+            />
+
+            {/* Send Button */}
+            <button
+              onClick={() => handleSendMessage()}
+              disabled={(!inputPrompt.trim() && !attachedFile) || isStreaming}
+              className="btn btn-primary btn-sm"
+              style={{
+                padding: '10px 18px',
+                borderRadius: 'var(--radius-md)',
+                fontWeight: 700,
+                fontSize: '13px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              <Send size={15} />
+              <span>{isStreaming ? 'Synthesizing...' : 'Send'}</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

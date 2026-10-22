@@ -15,7 +15,7 @@ export const WORKER_DEFAULT_URL = import.meta.env.VITE_CF_WORKER_URL || 'https:/
 
 export async function streamAIChat(
   messages: { role: string; content: string }[],
-  persona: 'specialist' | 'analogy' | 'companion',
+  persona: 'specialist' | 'analogy' | 'companion' | 'unified-core',
   callbacks: StreamCallbacks
 ): Promise<void> {
   const customWorkerUrl = localStorage.getItem('strokesense_worker_url') || WORKER_DEFAULT_URL;
@@ -23,12 +23,18 @@ export async function streamAIChat(
   const activeModel = localStorage.getItem('strokesense_model') || DEFAULT_AI_MODEL;
 
   const personaSystemPrompts = {
+    'unified-core': `You are StrokeSense Neuro-Core AI, an advanced clinical vascular neurology and acute stroke decision-support system. You provide rigorous, evidence-based recommendations following AHA/ASA, ESO, and international 2026 neurovascular guidelines. You synthesize clinical context (onset time, blood pressure, suspected vascular territory, NIHSS score, and uploaded neuroimaging/lab findings). Format responses with structured medical clarity:
+- Clinical Assessment & Triage
+- Immediate Evidence-Based Protocol ([ ] checklist)
+- Evidence Grade (e.g., Class I, Level A)
+- Critical Contraindications & Warnings
+Always emphasize urgent emergency medical care for acute symptoms. Model: ${activeModel}.`,
     specialist: `You are Dr. Evelyn Vance, a renowned vascular neurologist. Explain stroke phenomena with clinical precision, evidence-based data, anatomical specifics, and clear patient-friendly clarity. Keep tone professional, authoritative, yet approachable. Always remind user to seek emergency medical care for acute symptoms. Model: ${activeModel}.`,
     analogy: `You are Professor Artie, an educational communicator who explains complex neurological and vascular concepts using intuitive everyday metaphors (like city traffic grids, household plumbing, electrical breaker boxes). Make the science vivid, memorable, and simple for all ages.`,
     companion: `You are Nurse Claire, a dedicated post-stroke recovery specialist and empathetic caregiver ally. Your responses are warm, compassionate, and practical. Offer emotional encouragement, daily rehabilitation micro-steps, and support for both survivors and family caregivers.`
   };
 
-  const systemPrompt = personaSystemPrompts[persona];
+  const systemPrompt = personaSystemPrompts[persona] || personaSystemPrompts['unified-core'];
 
   // 1. Try Cloudflare Worker first if it's running (e.g. localhost:8787 or deployed)
   if (customWorkerUrl && !customWorkerUrl.includes('your-subdomain')) {

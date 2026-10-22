@@ -25,12 +25,26 @@ export interface PersonaConfig {
   badge: string;
 }
 
+export interface AttachedMedicalFile {
+  name: string;
+  size: number;
+  type: string;
+  previewUrl?: string;
+}
+
 export interface ChatMessage {
   id: string;
   sender: 'user' | 'assistant';
   content: string;
   timestamp: string;
-  persona?: 'specialist' | 'analogy' | 'companion';
+  persona?: 'specialist' | 'analogy' | 'companion' | 'unified-core';
+  attachment?: AttachedMedicalFile;
+  contextVitals?: {
+    onset?: string;
+    vessel?: string;
+    bp?: string;
+    nihss?: string;
+  };
 }
 
 export interface RiskProfileInput {
