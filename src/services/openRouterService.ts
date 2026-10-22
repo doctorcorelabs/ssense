@@ -10,7 +10,7 @@ export interface StreamCallbacks {
 
 export const DEFAULT_AI_MODEL = import.meta.env.VITE_AI_MODEL || 'openai/gpt-6-luna';
 export const DEFAULT_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || '';
-export const WORKER_DEFAULT_URL = import.meta.env.VITE_CF_WORKER_URL || 'https://strokesense-proxy.super-guan.workers.dev';
+export const WORKER_DEFAULT_URL = import.meta.env.VITE_CF_WORKER_URL || 'https://strokesense-proxy.daivanfebrijuansetiya.workers.dev';
 
 
 export async function streamAIChat(
