@@ -2,6 +2,10 @@
 
 export type ActiveTab = 
   | 'overview'
+  | 'studio-anatomy'
+  | 'studio-empathy'
+  | 'studio-rehab'
+  | 'studio-ai'
   | 'golden-hour'
   | 'vision-sim'
   | 'aphasia-lab'

@@ -1,22 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  Timer, 
-  Eye, 
-  Activity, 
   Brain, 
+  Eye, 
   Sparkles, 
-  ShieldAlert, 
   Hand, 
-  MessageSquareHeart, 
-  Pill, 
-  ShieldCheck, 
+  Activity, 
+  ArrowRight, 
+  ShieldAlert, 
   HeartPulse, 
-  Clock, 
-  Zap, 
-  Gauge,
-  Microscope,
-  ChevronRight,
-  Cpu
+  Flame, 
+  ChevronRight
 } from 'lucide-react';
 import type { ActiveTab } from '../../types/stroke';
 
@@ -24,580 +17,536 @@ interface OverviewHubProps {
   setActiveTab: (tab: ActiveTab) => void;
 }
 
-type ModuleCategory = 'all' | 'sim' | 'clinical' | 'rehab';
-
 export const OverviewHub: React.FC<OverviewHubProps> = ({ setActiveTab }) => {
-  const [selectedCategory, setSelectedCategory] = useState<ModuleCategory>('all');
-  const [cbfValue, setCbfValue] = useState<number>(54);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  // Acute Stroke Time Elapsed Scrubber (minutes since symptom onset)
+  const [minutesElapsed, setMinutesElapsed] = useState<number>(75);
+  // Selected BE-FAST symptom trigger
+  const [selectedBefast, setSelectedBefast] = useState<'B' | 'E' | 'F' | 'A' | 'S' | 'T'>('F');
+  // Canvas for live physiological perfusion waveform
+  const waveformCanvasRef = useRef<HTMLCanvasElement>(null);
 
-  // CBF clinical thresholds
-  let cbfStatus = {
-    tier: 'Normal Perfusion',
-    color: 'var(--green-neon)',
-    borderColor: 'rgba(0,255,136,0.25)',
-    bgColor: 'rgba(0,255,136,0.06)',
-    description: 'ATP synthesis intact. Neurons maintain normal electrical rhythms and ion homeostasis.',
+  // Neuron loss formula: Saver JL. Stroke 2006 (1.9 million neurons per minute in untreated acute stroke)
+  const neuronsLostMillions = ((minutesElapsed * 1.9)).toFixed(1);
+  const synapsesLostBillions = ((minutesElapsed * 14.0)).toFixed(1);
+
+  // Triage window logic
+  let treatmentStatus = {
+    badge: 'IV Thrombolysis (rTPA / TNK) Eligible',
+    badgeClass: 'badge-success',
+    color: 'var(--green-700)',
+    bg: 'var(--green-50)',
+    border: 'var(--green-200)',
+    headline: 'Within 4.5-Hour Thrombolytic Window',
+    recommendation: 'Door-to-needle goal < 60 mins. Administer IV Alteplase (0.9 mg/kg) or Tenecteplase if non-contrast CT excludes hemorrhage.'
   };
 
-  if (cbfValue <= 10) {
-    cbfStatus = { tier: 'Infarct Core', color: 'var(--red-neon)', borderColor: 'rgba(255,45,85,0.3)', bgColor: 'rgba(255,45,85,0.06)', description: 'Irreversible necrosis. Complete ATP failure and cytotoxic cell swelling within minutes.' };
-  } else if (cbfValue <= 22) {
-    cbfStatus = { tier: 'Ischemic Penumbra', color: '#ff6b35', borderColor: 'rgba(255,107,53,0.3)', bgColor: 'rgba(255,107,53,0.06)', description: 'Salvageable! Structurally viable but electrically silent neurons. Urgent reperfusion required.' };
-  } else if (cbfValue <= 45) {
-    cbfStatus = { tier: 'Oligemia', color: 'var(--amber-400)', borderColor: 'rgba(251,191,36,0.3)', bgColor: 'rgba(251,191,36,0.06)', description: 'Compensatory vasodilation. Oxygen extraction near maximum. Vulnerable to further drops.' };
+  if (minutesElapsed > 270 && minutesElapsed <= 1440) {
+    treatmentStatus = {
+      badge: 'Endovascular Thrombectomy (EVT) Window',
+      badgeClass: 'badge-primary',
+      color: 'var(--blue-700)',
+      bg: 'var(--blue-50)',
+      border: 'var(--blue-200)',
+      headline: 'CT Perfusion / DAWN Trial Salvage Candidate',
+      recommendation: 'Mechanical thrombectomy with stent retriever or aspiration catheter indicated if large vessel occlusion (LVO) present with clinical-core mismatch.'
+    };
+  } else if (minutesElapsed > 1440) {
+    treatmentStatus = {
+      badge: 'Late / Subacute Medical Management',
+      badgeClass: 'badge-warning',
+      color: 'var(--amber-700)',
+      bg: 'var(--amber-50)',
+      border: 'var(--amber-200)',
+      headline: 'Penumbra Infarcted — Secondary Prevention Focus',
+      recommendation: 'Focus shifts to antiplatelet therapy, blood pressure optimization, statins, and intensive neuro-rehabilitation.'
+    };
   }
 
-  // Animated CBF waveform on canvas
+  // BE-FAST Anatomical Symptom Database
+  const befastDetails = {
+    B: {
+      letter: 'B',
+      title: 'Balance & Coordination',
+      anatomy: 'Cerebellar Hemispheres & Vestibular Nuclei (PICA / AICA)',
+      clinicalExam: 'Sudden truncal ataxia, dysmetria on finger-to-nose, vertigo, or inability to sit unassisted.',
+      territory: 'Posterior Inferior Cerebellar Artery (PICA)'
+    },
+    E: {
+      letter: 'E',
+      title: 'Eyes & Visual Fields',
+      anatomy: 'Occipital Cortex (Brodmann 17) & Cranial Nerves III/IV/VI',
+      clinicalExam: 'Homonymous hemianopia, sudden binocular diplopia (double vision), or conjugate gaze deviation.',
+      territory: 'Posterior Cerebral Artery (PCA)'
+    },
+    F: {
+      letter: 'F',
+      title: 'Facial Asymmetry',
+      anatomy: 'Cranial Nerve VII (Facial Motor Nucleus / Corticobulbar Tract)',
+      clinicalExam: 'Unilateral flattened nasolabial fold and downward mouth drooping. Forehead wrinkling typically spared in upper motor neuron lesions.',
+      territory: 'Middle Cerebral Artery (MCA) Cortical Branches'
+    },
+    A: {
+      letter: 'A',
+      title: 'Arm & Limb Drift',
+      anatomy: 'Primary Motor Cortex (Precentral Gyrus) & Internal Capsule',
+      clinicalExam: 'Pronator drift test: patient holds arms outstretched palms up with eyes closed; weak arm drifts downward and pronates within 10 seconds.',
+      territory: 'Contralateral Middle / Anterior Cerebral Artery'
+    },
+    S: {
+      letter: 'S',
+      title: 'Speech & Language',
+      anatomy: 'Broca\'s Area (Inferior Frontal) & Wernicke\'s Area (Superior Temporal)',
+      clinicalExam: 'Expressive dysphasia (broken telegraphic words), receptive sensory aphasia (fluent nonsense), or dysarthria (slurred articulation).',
+      territory: 'Dominant (Left) MCA M2/M3 Segments'
+    },
+    T: {
+      letter: 'T',
+      title: 'Time to Treatment',
+      anatomy: 'Ischemic Penumbra Collateral Circulation',
+      clinicalExam: 'Every minute saved salvages 1.9 million neurons. Document exact "last known normal" (LKN) timestamp for emergency triage.',
+      territory: 'Systemic Neurovascular Emergency'
+    }
+  };
+
+  const activeBefast = befastDetails[selectedBefast];
+
+  // Draw continuous physiological hemodynamic pulse
   useEffect(() => {
-    const canvas = canvasRef.current;
+    const canvas = waveformCanvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+
     let t = 0;
     let animId: number;
 
     const draw = () => {
-      const w = canvas.width = canvas.parentElement?.clientWidth || 500;
-      const h = canvas.height = 64;
+      const w = (canvas.width = canvas.parentElement?.clientWidth || 400);
+      const h = (canvas.height = 48);
       ctx.clearRect(0, 0, w, h);
 
-      // ECG-style wave
       ctx.beginPath();
       ctx.moveTo(0, h / 2);
+
       for (let x = 0; x < w; x++) {
-        const phase = (x / w * 6 + t) % (Math.PI * 2);
-        const amplitude = cbfValue / 60 * 20;
-        const y = h / 2 - Math.sin(phase) * amplitude - Math.sin(phase * 3) * (amplitude * 0.3);
+        const freq = (x / w) * 6 + t;
+        // Doppler pulsatility waveform
+        const y = h / 2 - Math.sin(freq) * 14 - Math.sin(freq * 2.5) * 5;
         ctx.lineTo(x, y);
       }
 
-      const isNormal = cbfValue > 45;
-      const lineColor = isNormal ? '#00ff88' : cbfValue > 22 ? '#ff6b35' : cbfValue > 10 ? '#ff9d4a' : '#ff2d55';
-      ctx.strokeStyle = lineColor;
+      ctx.strokeStyle = '#2563EB';
       ctx.lineWidth = 2;
-      ctx.shadowBlur = 8;
-      ctx.shadowColor = lineColor;
       ctx.stroke();
-      ctx.shadowBlur = 0;
 
-      // Moving scan line
-      const scanX = (t * 60) % w;
-      const scanGrad = ctx.createLinearGradient(scanX - 40, 0, scanX + 5, 0);
-      scanGrad.addColorStop(0, 'transparent');
-      scanGrad.addColorStop(1, lineColor);
-      ctx.fillStyle = scanGrad;
-      ctx.fillRect(scanX - 40, 0, 45, h);
-
-      t += 0.02;
+      t += 0.03;
       animId = requestAnimationFrame(draw);
     };
 
     draw();
     return () => cancelAnimationFrame(animId);
-  }, [cbfValue]);
-
-  const featureCards = [
-    {
-      tab: 'brain-3d' as ActiveTab,
-      category: 'sim',
-      title: '3D Brain Vessel Explorer',
-      badge: 'Three.js WebGL',
-      thumbnail: '/assets/cerebral_vascular_brain.jpg',
-      icon: Brain,
-      accentColor: 'rgba(0,245,255,0.3)',
-      glowColor: 'rgba(0,245,255,0.12)',
-      description: 'Interactive 360° Circle of Willis arterial model with DSA angiography contrast mode and Doppler telemetry.'
-    },
-    {
-      tab: 'golden-hour' as ActiveTab,
-      category: 'clinical',
-      title: 'Golden Hour Survival Clock',
-      badge: 'Time is Brain',
-      thumbnail: '/assets/ischemic_clot_vessel.jpg',
-      icon: Timer,
-      accentColor: 'rgba(255,45,85,0.3)',
-      glowColor: 'rgba(255,45,85,0.1)',
-      description: 'Real-time RAPID CT perfusion mismatch simulator. 1.9M neurons/min loss counter and tPA/EVT decision console.'
-    },
-    {
-      tab: 'neuroplasticity' as ActiveTab,
-      category: 'sim',
-      title: 'Neuroplasticity Rewiring Lab',
-      badge: 'Synaptogenesis',
-      thumbnail: '/assets/synapse_rewiring_cortex.jpg',
-      icon: Sparkles,
-      accentColor: 'rgba(191,95,255,0.3)',
-      glowColor: 'rgba(191,95,255,0.1)',
-      description: 'Witness peri-infarct collateral axonal sprouting and BDNF-mediated synaptogenesis in real time via interactive canvas.'
-    },
-    {
-      tab: 'vision-sim' as ActiveTab,
-      category: 'sim',
-      title: 'Stroke Vision Simulator',
-      badge: 'Sensory Empathy',
-      icon: Eye,
-      accentColor: 'rgba(0,245,255,0.25)',
-      glowColor: 'rgba(0,245,255,0.08)',
-      description: 'Live webcam hemianopia, diplopia, and hemi-neglect simulation via real-time canvas filter overlays.'
-    },
-    {
-      tab: 'aphasia-lab' as ActiveTab,
-      category: 'sim',
-      title: 'Aphasia Word-Struggle Lab',
-      badge: 'Cognitive Empathy',
-      icon: Activity,
-      accentColor: 'rgba(191,95,255,0.25)',
-      glowColor: 'rgba(191,95,255,0.08)',
-      description: "Simulate Broca's expressive motor blocks, Wernicke's fluent word salad, and anomic tip-of-the-tongue paralysis."
-    },
-    {
-      tab: 'risk-calculator' as ActiveTab,
-      category: 'clinical',
-      title: 'Personalized Risk Index',
-      badge: 'CHA₂DS₂-VASc',
-      icon: ShieldAlert,
-      accentColor: 'rgba(251,191,36,0.25)',
-      glowColor: 'rgba(251,191,36,0.08)',
-      description: 'Clinical 10-year stroke probability engine with AI-powered modifiable risk factor lifestyle intervention analysis.'
-    },
-    {
-      tab: 'hand-rehab' as ActiveTab,
-      category: 'rehab',
-      title: 'Hand Motor Rehab Coach',
-      badge: 'Computer Vision',
-      icon: Hand,
-      accentColor: 'rgba(0,255,136,0.25)',
-      glowColor: 'rgba(0,255,136,0.08)',
-      description: 'Client-side kinematic joint tracking for finger extension, thumb opposition ROM, and confetti celebration milestones.'
-    },
-    {
-      tab: 'ai-neurologist' as ActiveTab,
-      category: 'rehab',
-      title: 'AI Neurologist Console',
-      badge: 'OpenRouter Live',
-      icon: MessageSquareHeart,
-      accentColor: 'rgba(0,245,255,0.25)',
-      glowColor: 'rgba(0,245,255,0.08)',
-      description: 'Edge-streamed clinical AI with 3 expert personas: Vascular Neurologist, Analogy Educator, and Recovery Coach.'
-    },
-    {
-      tab: 'drug-guard' as ActiveTab,
-      category: 'clinical',
-      title: 'Drug & Supplement Guard',
-      badge: 'Pharmacology Safety',
-      icon: Pill,
-      accentColor: 'rgba(255,45,85,0.25)',
-      glowColor: 'rgba(255,45,85,0.08)',
-      description: 'Critical bleeding risk matrix: Warfarin + Ginkgo interactions, CYP450 enzyme induction, INR destabilization alerts.'
-    },
-  ];
-
-  const filteredCards = selectedCategory === 'all'
-    ? featureCards
-    : featureCards.filter((c) => c.category === selectedCategory);
+  }, []);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '40px', paddingTop: '8px' }}>
-
-      {/* ── HERO SECTION ─────────────────────────────────────────────── */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'minmax(0, 1.3fr) minmax(360px, 0.9fr)',
-        gap: '0',
-        borderRadius: 'var(--radius-xl)',
-        overflow: 'hidden',
-        border: '1px solid rgba(0,245,255,0.12)',
-        boxShadow: '0 0 0 1px rgba(0,245,255,0.06), 0 32px 80px -16px rgba(0,0,0,0.8), 0 0 80px -20px rgba(0,245,255,0.08)',
-        background: 'rgba(5,7,9,0.6)',
-        backdropFilter: 'blur(20px)',
-      }}>
-        {/* Left: Content */}
-        <div style={{
-          padding: '52px 52px 44px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          position: 'relative',
-          overflow: 'hidden',
-        }}>
-          {/* Background grid */}
-          <div className="bg-grid" style={{
-            position: 'absolute', inset: 0, opacity: 0.5, pointerEvents: 'none'
-          }} />
-
-          {/* Glow orb */}
-          <div style={{
-            position: 'absolute', top: '-60px', left: '-60px',
-            width: '280px', height: '280px',
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(0,245,255,0.08) 0%, transparent 70%)',
-            pointerEvents: 'none'
-          }} />
-
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
-              <span className="badge badge-cyan">
-                <Microscope size={11} /> Clinical Neurovascular AI
-              </span>
-              <span className="badge badge-red">
-                <Zap size={11} /> 1.9M Neurons / Minute
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', paddingBottom: '70px' }}>
+      
+      {/* ── BENTO HERO: ACUTE PERFUSION DOSSIER ───────────────────────── */}
+      <section style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.4fr) minmax(340px, 1fr)', gap: '20px' }}>
+        
+        {/* Bento Tile 1 (Large 60%): Interactive Perfusion Scrubber */}
+        <div className="bento-tile" style={{ padding: '32px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span className="badge badge-primary">
+                  <Activity size={12} /> Acute Neurovascular Dossier
+                </span>
+                <span className="badge badge-danger">
+                  <Flame size={12} /> Time is Brain
+                </span>
+              </div>
+              <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                Saver JL Protocol (Stroke 2006)
               </span>
             </div>
 
             <h1 style={{
-              fontSize: 'clamp(32px, 4vw, 50px)',
+              fontSize: 'clamp(26px, 3.2vw, 36px)',
               fontWeight: 800,
-              letterSpacing: '-0.035em',
-              lineHeight: 1.1,
-              marginBottom: '18px',
-              fontFamily: 'var(--font-display)',
+              letterSpacing: '-0.03em',
+              lineHeight: 1.18,
+              color: 'var(--text-primary)',
+              marginBottom: '12px'
             }}>
-              Every Second Counts.{' '}
-              <span style={{
-                background: 'linear-gradient(135deg, var(--cyan-neon) 0%, var(--cyan-400) 60%, var(--violet-400) 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-              }}>
-                Master Stroke.
-              </span>
+              Acute Ischemic Stroke: <br />
+              <span style={{ color: 'var(--blue-600)' }}>Every Minute Salvages 1.9 Million Neurons</span>
             </h1>
 
-            <p style={{ fontSize: '15px', color: 'var(--text-secondary)', lineHeight: 1.65, marginBottom: '32px', maxWidth: '520px' }}>
-              When a cerebral artery occludes, <strong style={{ color: 'var(--text-primary)' }}>1.9 million neurons die every minute</strong>. StrokeSense delivers military-grade 3D vascular simulation, real-time sensory deficit empathy tools, and evidence-based AI consultation.
+            <p style={{ fontSize: '14.5px', color: 'var(--text-secondary)', lineHeight: 1.6, maxWidth: '580px', marginBottom: '24px' }}>
+              When a cerebral artery is occluded by a thrombus, structurally viable tissue in the ischemic penumbra dies rapidly without reperfusion. Use the interactive time-slider below to simulate clinical loss and evaluate treatment eligibility windows.
             </p>
-
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '36px' }}>
-              <button onClick={() => setActiveTab('brain-3d')} className="btn btn-primary btn-lg">
-                <Brain size={17} /> Explore 3D Vasculature
-              </button>
-              <button onClick={() => setActiveTab('golden-hour')} className="btn btn-secondary btn-lg">
-                <Timer size={17} /> Golden Hour Clock
-              </button>
-            </div>
-
-            {/* Live CBF Perfusion Panel */}
-            <div style={{
-              padding: '18px 20px',
-              borderRadius: 'var(--radius-md)',
-              backgroundColor: cbfStatus.bgColor,
-              border: `1px solid ${cbfStatus.borderColor}`,
-              transition: 'all 0.3s ease',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '12.5px', fontWeight: 700 }}>
-                  <Gauge size={14} style={{ color: cbfStatus.color }} />
-                  <span style={{ color: cbfStatus.color }}>CBF: {cbfValue} mL/100g/min</span>
-                </span>
-                <span style={{
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  padding: '3px 9px',
-                  borderRadius: 'var(--radius-full)',
-                  backgroundColor: cbfStatus.borderColor,
-                  color: cbfStatus.color,
-                  border: `1px solid ${cbfStatus.borderColor}`,
-                  fontFamily: 'var(--font-mono)',
-                }}>
-                  {cbfStatus.tier}
-                </span>
-              </div>
-
-              {/* Animated ECG canvas */}
-              <div style={{ overflow: 'hidden', borderRadius: '6px', marginBottom: '10px' }}>
-                <canvas ref={canvasRef} style={{ width: '100%', height: '64px', display: 'block' }} />
-              </div>
-
-              <input
-                type="range"
-                min={0} max={60} value={cbfValue}
-                onChange={e => setCbfValue(Number(e.target.value))}
-                style={{ width: '100%', cursor: 'pointer', height: '5px' }}
-              />
-              <p style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginTop: '8px', lineHeight: 1.45 }}>
-                {cbfStatus.description}
-              </p>
-            </div>
           </div>
-        </div>
 
-        {/* Right: 3D Medical Visual */}
-        <div style={{ position: 'relative', overflow: 'hidden', minHeight: '480px', borderLeft: '1px solid rgba(0,245,255,0.08)' }}>
-          <img
-            src="/assets/cerebral_vascular_brain.jpg"
-            alt="3D Cerebral Vascular Brain Angiography"
-            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-          />
-          {/* Dark overlay for depth */}
+          {/* Interactive Scrubber Console */}
           <div style={{
-            position: 'absolute', inset: 0,
-            background: 'linear-gradient(135deg, rgba(5,7,9,0.3) 0%, rgba(5,7,9,0.1) 50%, rgba(5,7,9,0.6) 100%)',
-          }} />
-          {/* Bottom annotation chip */}
-          <div style={{
-            position: 'absolute', bottom: '20px', right: '20px', left: '20px',
-            backgroundColor: 'rgba(5,7,9,0.82)',
-            backdropFilter: 'blur(12px)',
-            border: '1px solid rgba(0,245,255,0.15)',
-            borderRadius: 'var(--radius-md)',
-            padding: '12px 16px',
+            backgroundColor: 'var(--bg-surface-sub)',
+            borderRadius: 'var(--radius-lg)',
+            border: '1px solid var(--glass-border)',
+            padding: '20px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px' }}>
-              <span className="pulse-active" style={{ width: '6px', height: '6px' }} />
-              <span style={{ color: 'var(--cyan-neon)', fontWeight: 700 }}>Middle Cerebral Artery (MCA)</span>
-            </div>
-            <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
-              Dominant stroke LVO territory · Circle of Willis simulation active
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* ── VITAL STATS ROW ──────────────────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
-        {[
-          { icon: Zap, label: 'Neurons / Minute', value: '1.9 Million', color: 'var(--red-neon)', bg: 'rgba(255,45,85,0.07)', border: 'rgba(255,45,85,0.18)', sub: 'Lost in untreated stroke' },
-          { icon: Clock, label: 'IV tPA Window', value: '0 – 4.5 h', color: 'var(--cyan-neon)', bg: 'rgba(0,245,255,0.05)', border: 'rgba(0,245,255,0.15)', sub: 'Alteplase / Tenecteplase' },
-          { icon: ShieldCheck, label: 'Preventable Strokes', value: '80%+', color: 'var(--green-neon)', bg: 'rgba(0,255,136,0.05)', border: 'rgba(0,255,136,0.15)', sub: 'Via BP/lifestyle control' },
-          { icon: Sparkles, label: 'Neuroplasticity', value: 'BDNF-Driven', color: 'var(--violet-400)', bg: 'rgba(139,92,246,0.06)', border: 'rgba(139,92,246,0.18)', sub: 'Hebbian synaptogenesis' },
-        ].map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <div key={stat.label} className="glass-card" style={{
-              padding: '22px 24px',
-              display: 'flex',
-              gap: '14px',
-              alignItems: 'center',
-              backgroundColor: stat.bg,
-              borderColor: stat.border,
-            }}>
-              <div style={{
-                width: '44px', height: '44px', borderRadius: '12px', flexShrink: 0,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                backgroundColor: stat.bg,
-                border: `1px solid ${stat.border}`,
-                color: stat.color,
-                boxShadow: `0 0 16px ${stat.bg}`,
-              }}>
-                <Icon size={22} />
-              </div>
+            {/* Header with values */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
               <div>
-                <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '2px' }}>
-                  {stat.label}
-                </div>
-                <div style={{ fontSize: '22px', fontWeight: 800, color: stat.color, fontFamily: 'var(--font-mono)', lineHeight: 1.2 }}>
-                  {stat.value}
-                </div>
-                <div style={{ fontSize: '11px', color: 'var(--text-subtle)', marginTop: '2px' }}>
-                  {stat.sub}
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* ── BE-FAST CONSOLE ──────────────────────────────────────────── */}
-      <div className="glass-card" style={{ padding: '36px' }}>
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px', flexWrap: 'wrap', gap: '14px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <div style={{
-              width: '42px', height: '42px', borderRadius: '12px',
-              background: 'rgba(255,45,85,0.12)', border: '1px solid rgba(255,45,85,0.25)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: 'var(--red-400)',
-              boxShadow: '0 0 18px rgba(255,45,85,0.12)',
-            }}>
-              <HeartPulse size={22} />
-            </div>
-            <div>
-              <h2 style={{ fontSize: '20px', fontWeight: 800, fontFamily: 'var(--font-display)' }}>
-                BE-FAST Anatomical Warning Protocol
-              </h2>
-              <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                Each symptom maps directly to a compromised vascular territory
-              </p>
-            </div>
-          </div>
-          <span className="badge badge-red">
-            <span className="pulse-active pulse-danger" style={{ width: '6px', height: '6px' }} />
-            High Clinical Urgency
-          </span>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
-          {[
-            { letter: 'B', title: 'Balance', anatomy: 'Cerebellum / Vestibular', desc: 'Sudden ataxia, unsteady gait, or loss of equilibrium.', color: 'var(--cyan-neon)', bg: 'rgba(0,245,255,0.06)', border: 'rgba(0,245,255,0.14)' },
-            { letter: 'E', title: 'Eyes', anatomy: 'CN III/IV/VI or Occipital', desc: 'Diplopia or sudden partial blindness in both eyes.', color: 'var(--violet-400)', bg: 'rgba(139,92,246,0.06)', border: 'rgba(139,92,246,0.16)' },
-            { letter: 'F', title: 'Face', anatomy: 'Cranial Nerve VII Nucleus', desc: 'Asymmetric smile. Facial drooping on one side.', color: 'var(--amber-400)', bg: 'rgba(251,191,36,0.06)', border: 'rgba(251,191,36,0.16)' },
-            { letter: 'A', title: 'Arms', anatomy: 'Corticospinal Motor Tract', desc: 'Unilateral arm weakness; drifts when raised.', color: '#fb7185', bg: 'rgba(251,113,133,0.06)', border: 'rgba(251,113,133,0.16)' },
-            { letter: 'S', title: 'Speech', anatomy: "Broca's / Wernicke's Cortex", desc: 'Slurred or incomprehensible speech.', color: 'var(--green-neon)', bg: 'rgba(0,255,136,0.06)', border: 'rgba(0,255,136,0.14)' },
-            { letter: 'T', title: 'Time', anatomy: 'Penumbra Salvage Clock', desc: 'Every minute = 1.9M neurons lost. Act now.', color: 'var(--red-neon)', bg: 'rgba(255,45,85,0.08)', border: 'rgba(255,45,85,0.22)' },
-          ].map((item) => (
-            <div key={item.letter} style={{
-              padding: '18px',
-              borderRadius: 'var(--radius-md)',
-              backgroundColor: item.bg,
-              border: `1px solid ${item.border}`,
-              transition: 'all var(--dur-base) var(--ease-out)',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                <span style={{
-                  width: '34px', height: '34px', borderRadius: '9px', flexShrink: 0,
-                  backgroundColor: item.bg, border: `1px solid ${item.border}`,
-                  color: item.color, fontWeight: 800, fontSize: '17px',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontFamily: 'var(--font-display)',
-                  boxShadow: `0 0 14px ${item.bg}`,
-                }}>
-                  {item.letter}
+                <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Time Since Symptom Onset (Last Known Normal)
                 </span>
-                <div>
-                  <h4 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                    {item.title}
-                  </h4>
-                  <span style={{ fontSize: '10px', color: item.color, fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
-                    {item.anatomy}
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '2px' }}>
+                  <span style={{ fontSize: '32px', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--text-primary)', lineHeight: 1 }}>
+                    {Math.floor(minutesElapsed / 60)}h {minutesElapsed % 60}m
+                  </span>
+                  <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                    ({minutesElapsed} total minutes)
                   </span>
                 </div>
               </div>
-              <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                {item.desc}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
 
-      {/* ── MODULE BAYS ──────────────────────────────────────────────── */}
-      <div>
-        {/* Section Header + Filters */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
-          <div>
-            <h2 style={{ fontSize: '26px', fontWeight: 800, letterSpacing: '-0.025em', fontFamily: 'var(--font-display)', marginBottom: '4px' }}>
-              Clinical Simulation{' '}
-              <span style={{
-                background: 'linear-gradient(135deg, var(--cyan-neon), var(--violet-400))',
-                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-              }}>Intelligence Bays</span>
-            </h2>
-            <p style={{ fontSize: '13.5px', color: 'var(--text-muted)' }}>
-              Launch specialized interactive modules — anatomy sim, cognitive lab, AI consultation, or physical rehab.
-            </p>
-          </div>
-
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            {[
-              { id: 'all', label: 'All 9' },
-              { id: 'sim', label: 'Simulation' },
-              { id: 'clinical', label: 'Clinical' },
-              { id: 'rehab', label: 'Rehab & AI' },
-            ].map(cat => {
-              const isActive = selectedCategory === cat.id;
-              return (
-                <button
-                  key={cat.id}
-                  onClick={() => setSelectedCategory(cat.id as ModuleCategory)}
-                  className={`btn btn-sm ${isActive ? 'btn-primary' : 'btn-secondary'}`}
-                  style={{ borderRadius: 'var(--radius-full)' }}
-                >
-                  {cat.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Card Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '20px' }}>
-          {filteredCards.map((feat) => {
-            const Icon = feat.icon;
-            return (
-              <div
-                key={feat.tab}
-                onClick={() => setActiveTab(feat.tab)}
-                className="glass-card glass-card-interactive"
-                style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
-              >
-                {/* Thumbnail or Icon header */}
-                {feat.thumbnail ? (
-                  <div style={{ height: '148px', position: 'relative', overflow: 'hidden' }}>
-                    <img src={feat.thumbnail} alt={feat.title}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.4s ease' }}
-                    />
-                    <div style={{
-                      position: 'absolute', inset: 0,
-                      background: 'linear-gradient(to top, rgba(5,7,9,0.8) 0%, rgba(5,7,9,0) 60%)',
-                    }} />
-                    <div style={{ position: 'absolute', top: '12px', left: '12px' }}>
-                      <span className="badge badge-cyan" style={{ backdropFilter: 'blur(8px)' }}>
-                        {feat.badge}
-                      </span>
-                    </div>
-                  </div>
-                ) : (
-                  <div style={{
-                    height: '72px',
-                    background: `linear-gradient(135deg, ${feat.glowColor} 0%, transparent 100%)`,
-                    borderBottom: `1px solid ${feat.accentColor}`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '0 22px',
-                  }}>
-                    <div style={{
-                      width: '40px', height: '40px', borderRadius: '10px',
-                      background: feat.glowColor, border: `1px solid ${feat.accentColor}`,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      color: feat.accentColor.replace('rgba(', '#').replace(/,0\.\d+\)/, ''),
-                    }}>
-                      <Icon size={20} color="white" style={{ opacity: 0.9 }} />
-                    </div>
-                    <span style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-                      {feat.badge}
-                    </span>
-                  </div>
-                )}
-
-                <div style={{ padding: '22px 24px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                  <div>
-                    <h3 style={{ fontSize: '16.5px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px', letterSpacing: '-0.015em' }}>
-                      {feat.title}
-                    </h3>
-                    <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-                      {feat.description}
-                    </p>
-                  </div>
-
-                  <div style={{
-                    display: 'flex', alignItems: 'center', gap: '6px',
-                    marginTop: '18px', fontSize: '13px', fontWeight: 700,
-                    color: 'var(--cyan-400)',
-                  }}>
-                    <span>Enter Clinical Bay</span>
-                    <ChevronRight size={15} />
-                  </div>
+              {/* Necrosis Counter */}
+              <div style={{ textAlign: 'right' }}>
+                <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--red-700)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Estimated Neuronal Cell Necrosis
+                </span>
+                <div style={{ fontSize: '26px', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--red-600)', lineHeight: 1, marginTop: '2px' }}>
+                  ~{neuronsLostMillions}M <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)' }}>neurons</span>
+                </div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>
+                  (~{synapsesLostBillions}B synapses)
                 </div>
               </div>
-            );
-          })}
-        </div>
-      </div>
+            </div>
 
-      {/* ── PLATFORM STACK FOOTER ─────────────────────────────────────── */}
-      <div className="glass-card" style={{ padding: '24px 32px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <Cpu size={16} color="var(--cyan-400)" />
-          <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)' }}>
-            Powered by Edge AI
-          </span>
+            {/* Slider */}
+            <div>
+              <input
+                type="range"
+                min={10}
+                max={360}
+                step={5}
+                value={minutesElapsed}
+                onChange={(e) => setMinutesElapsed(Number(e.target.value))}
+                style={{ width: '100%', cursor: 'pointer', height: '6px' }}
+                aria-label="Minutes elapsed since stroke symptom onset"
+              />
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px', fontFamily: 'var(--font-mono)' }}>
+                <span>0m (Onset)</span>
+                <span style={{ color: 'var(--green-700)', fontWeight: 600 }}>60m (Door-to-Needle)</span>
+                <span style={{ color: 'var(--blue-700)', fontWeight: 600 }}>270m (4.5h tPA cutoff)</span>
+                <span>360m (6h EVT Target)</span>
+              </div>
+            </div>
+
+            {/* Treatment Decision Guidance Panel */}
+            <div style={{
+              backgroundColor: treatmentStatus.bg,
+              border: `1px solid ${treatmentStatus.border}`,
+              borderRadius: 'var(--radius-md)',
+              padding: '14px 16px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: treatmentStatus.color }}>
+                  {treatmentStatus.headline}
+                </span>
+                <span className={`badge ${treatmentStatus.badgeClass}`}>
+                  {treatmentStatus.badge}
+                </span>
+              </div>
+              <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                {treatmentStatus.recommendation}
+              </p>
+            </div>
+
+            {/* Waveform Canvas */}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px', fontSize: '11px', color: 'var(--text-muted)' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <HeartPulse size={12} color="var(--blue-600)" />
+                  Middle Cerebral Artery (MCA) Doppler Flow Velocity
+                </span>
+                <span style={{ fontFamily: 'var(--font-mono)' }}>64 cm/s · PI 0.86</span>
+              </div>
+              <div style={{ height: '48px', overflow: 'hidden', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--bg-surface)' }}>
+                <canvas ref={waveformCanvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />
+              </div>
+            </div>
+          </div>
         </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-          {['React 18', 'Three.js 3D', 'MediaPipe CV', 'Cloudflare Edge', 'OpenRouter AI', 'Netlify CI/CD'].map(t => (
-            <span key={t} className="badge badge-cyan" style={{ fontSize: '10px' }}>{t}</span>
-          ))}
+
+        {/* Bento Tile 2 (Right 40%): BE-FAST Interactive Clinical Switchboard */}
+        <div className="bento-tile" style={{ padding: '28px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <ShieldAlert size={18} color="var(--red-600)" />
+                <h3 style={{ fontSize: '17px', fontWeight: 800 }}>
+                  BE-FAST Diagnostic Switchboard
+                </h3>
+              </div>
+              <span className="badge badge-danger">AHA/ASA Protocol</span>
+            </div>
+
+            <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', marginBottom: '18px', lineHeight: 1.5 }}>
+              Select any cardinal symptom letter to inspect its anatomical localization, affected vessel territory, and bedside neurological test.
+            </p>
+
+            {/* Selector Buttons */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '6px', marginBottom: '18px' }}>
+              {(['B', 'E', 'F', 'A', 'S', 'T'] as const).map((letter) => {
+                const isSelected = selectedBefast === letter;
+                return (
+                  <button
+                    key={letter}
+                    onClick={() => setSelectedBefast(letter)}
+                    style={{
+                      padding: '10px 0',
+                      borderRadius: 'var(--radius-md)',
+                      fontSize: '15px',
+                      fontWeight: 800,
+                      fontFamily: 'var(--font-display)',
+                      color: isSelected ? '#FFFFFF' : 'var(--text-primary)',
+                      backgroundColor: isSelected ? 'var(--blue-600)' : 'var(--bg-surface-sub)',
+                      border: isSelected ? '1px solid var(--blue-700)' : '1px solid var(--glass-border)',
+                      boxShadow: isSelected ? '0 2px 6px rgba(37,99,235,0.25)' : 'none',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    {letter}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Active Symptom Inspection Card */}
+            <div style={{
+              padding: '18px',
+              borderRadius: 'var(--radius-md)',
+              backgroundColor: 'var(--bg-surface-sub)',
+              border: '1px solid var(--glass-border)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px'
+            }}>
+              <div>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--blue-700)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Symptom Identifier
+                </span>
+                <h4 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary)' }}>
+                  {activeBefast.letter} — {activeBefast.title}
+                </h4>
+              </div>
+
+              <div>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Anatomical Localization & Territory
+                </span>
+                <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', fontWeight: 600, marginTop: '2px' }}>
+                  {activeBefast.anatomy}
+                </p>
+                <span style={{ fontSize: '11px', color: 'var(--blue-600)', fontFamily: 'var(--font-mono)' }}>
+                  Vessel: {activeBefast.territory}
+                </span>
+              </div>
+
+              <div style={{ borderTop: '1px solid var(--glass-border)', paddingTop: '10px' }}>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Bedside Clinical Examination
+                </span>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5, marginTop: '2px' }}>
+                  {activeBefast.clinicalExam}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>
+              Emergency dispatch: Immediate non-contrast CT
+            </span>
+            <button 
+              onClick={() => setActiveTab('studio-anatomy')}
+              className="btn btn-primary btn-sm"
+            >
+              <span>Explore 3D Vessels</span>
+              <ChevronRight size={14} />
+            </button>
+          </div>
         </div>
-      </div>
+      </section>
+
+      {/* ── THE 4 CONSOLIDATED CLINICAL STUDIOS GATEWAY ───────────────── */}
+      <section>
+        <div style={{ marginBottom: '20px' }}>
+          <h2 style={{ fontSize: '22px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text-primary)', marginBottom: '4px' }}>
+            Clinical Studios & Simulation Suites
+          </h2>
+          <p style={{ fontSize: '13.5px', color: 'var(--text-muted)' }}>
+            Access our four specialized medical workspaces — from rotational 3D neurovascular angiography to sensory empathy chambers and edge AI neurology.
+          </p>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+          
+          {/* Studio 1: Vascular 3D & Acute Clock */}
+          <div 
+            onClick={() => setActiveTab('studio-anatomy')}
+            className="bento-tile glass-card-interactive"
+            style={{ padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}
+          >
+            <div>
+              <div style={{
+                width: '42px',
+                height: '42px',
+                borderRadius: '10px',
+                backgroundColor: 'var(--blue-50)',
+                color: 'var(--blue-600)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '16px'
+              }}>
+                <Brain size={22} />
+              </div>
+              <span className="badge badge-primary" style={{ marginBottom: '8px' }}>
+                Studio 1 · Three.js WebGL
+              </span>
+              <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
+                Acute Vascular & 3D Anatomy Suite
+              </h3>
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.55 }}>
+                Full 360° rotational Circle of Willis arterial model with DSA angiography contrast views, Doppler telemetry, and RAPID CT perfusion mismatch simulation.
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '20px', fontSize: '12.5px', fontWeight: 700, color: 'var(--blue-600)' }}>
+              <span>Enter Vascular Suite</span>
+              <ArrowRight size={14} />
+            </div>
+          </div>
+
+          {/* Studio 2: Sensory & Cognitive Empathy */}
+          <div 
+            onClick={() => setActiveTab('studio-empathy')}
+            className="bento-tile glass-card-interactive"
+            style={{ padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}
+          >
+            <div>
+              <div style={{
+                width: '42px',
+                height: '42px',
+                borderRadius: '10px',
+                backgroundColor: 'var(--violet-50)',
+                color: 'var(--violet-600)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '16px'
+              }}>
+                <Eye size={22} />
+              </div>
+              <span className="badge badge-synapse" style={{ marginBottom: '8px' }}>
+                Studio 2 · Sensory Empathy
+              </span>
+              <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
+                Sensory & Cognitive Empathy Lab
+              </h3>
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.55 }}>
+                Real-time webcam homonymous hemianopia and diplopia optical filters paired with Broca's motor speech blocks and Wernicke's fluent receptive aphasia simulator.
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '20px', fontSize: '12.5px', fontWeight: 700, color: 'var(--violet-600)' }}>
+              <span>Enter Empathy Lab</span>
+              <ArrowRight size={14} />
+            </div>
+          </div>
+
+          {/* Studio 3: Neuroplasticity & Motor Rehab */}
+          <div 
+            onClick={() => setActiveTab('studio-rehab')}
+            className="bento-tile glass-card-interactive"
+            style={{ padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}
+          >
+            <div>
+              <div style={{
+                width: '42px',
+                height: '42px',
+                borderRadius: '10px',
+                backgroundColor: 'var(--green-50)',
+                color: 'var(--green-600)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '16px'
+              }}>
+                <Hand size={22} />
+              </div>
+              <span className="badge badge-success" style={{ marginBottom: '8px' }}>
+                Studio 3 · Computer Vision
+              </span>
+              <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
+                Neuroplasticity & Motor Rehab Arena
+              </h3>
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.55 }}>
+                MediaPipe client-side hand joint tracking with dynamic range-of-motion (ROM) arc detection and real-time Hebbian synaptogenesis rewiring engine.
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '20px', fontSize: '12.5px', fontWeight: 700, color: 'var(--green-600)' }}>
+              <span>Enter Rehab Arena</span>
+              <ArrowRight size={14} />
+            </div>
+          </div>
+
+          {/* Studio 4: AI Neurologist & Safety Guard */}
+          <div 
+            onClick={() => setActiveTab('studio-ai')}
+            className="bento-tile glass-card-interactive"
+            style={{ padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}
+          >
+            <div>
+              <div style={{
+                width: '42px',
+                height: '42px',
+                borderRadius: '10px',
+                backgroundColor: 'var(--blue-50)',
+                color: 'var(--blue-600)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '16px'
+              }}>
+                <Sparkles size={22} />
+              </div>
+              <span className="badge badge-primary" style={{ marginBottom: '8px' }}>
+                Studio 4 · OpenRouter Edge
+              </span>
+              <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
+                Clinical Copilot & Safety Guard
+              </h3>
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.55 }}>
+                Edge-streamed AI consultation with 3 clinical personas, paired with a bleeding risk matrix (Warfarin + Ginkgo interactions) and CHA₂DS₂-VASc risk index.
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '20px', fontSize: '12.5px', fontWeight: 700, color: 'var(--blue-600)' }}>
+              <span>Enter AI Copilot</span>
+              <ArrowRight size={14} />
+            </div>
+          </div>
+
+        </div>
+      </section>
 
     </div>
   );

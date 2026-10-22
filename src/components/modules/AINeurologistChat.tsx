@@ -217,12 +217,12 @@ export const AINeurologistChat: React.FC = () => {
               <div
                 key={pKey}
                 onClick={() => handleSwitchPersona(pKey)}
-                className="glass-card glass-card-interactive"
+                className="bento-tile glass-card-interactive"
                 style={{
                   padding: '18px',
-                  backgroundColor: isSelected ? 'rgba(0,245,255,0.07)' : '#ffffff',
-                  borderColor: isSelected ? 'var(--primary-400)' : 'var(--glass-border)',
-                  boxShadow: isSelected ? '0 4px 18px rgba(8, 145, 178, 0.18)' : 'var(--shadow-tactile)'
+                  backgroundColor: isSelected ? 'var(--blue-50)' : 'var(--bg-surface)',
+                  borderColor: isSelected ? 'var(--blue-500)' : 'var(--glass-border)',
+                  boxShadow: isSelected ? '0 4px 12px rgba(37, 99, 235, 0.12)' : 'var(--shadow-card)'
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
@@ -230,7 +230,7 @@ export const AINeurologistChat: React.FC = () => {
                     width: '36px',
                     height: '36px',
                     borderRadius: 'var(--radius-md)',
-                    backgroundColor: isSelected ? '#ffffff' : 'var(--bg-raised)',
+                    backgroundColor: isSelected ? '#ffffff' : 'var(--bg-surface-sub)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -240,7 +240,7 @@ export const AINeurologistChat: React.FC = () => {
                   </div>
                   <div>
                     <h4 style={{ fontSize: '14.5px', fontWeight: 800, color: 'var(--text-primary)' }}>{p.name}</h4>
-                    <span style={{ fontSize: '11.5px', color: 'var(--cyan-300)', fontWeight: 600 }}>{p.role}</span>
+                    <span style={{ fontSize: '11.5px', color: 'var(--blue-700)', fontWeight: 600 }}>{p.role}</span>
                   </div>
                 </div>
                 <p style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.45 }}>
@@ -301,7 +301,7 @@ export const AINeurologistChat: React.FC = () => {
           display: 'flex',
           flexDirection: 'column',
           gap: '18px',
-          backgroundColor: 'var(--bg-subtle)'
+          backgroundColor: 'var(--bg-surface-sub)'
         }}>
           {messages.map((msg) => {
             const isUser = msg.sender === 'user';
@@ -335,10 +335,10 @@ export const AINeurologistChat: React.FC = () => {
                   maxWidth: '78%',
                   padding: '14px 18px',
                   borderRadius: 'var(--radius-lg)',
-                  backgroundColor: isUser ? 'rgba(0, 245, 255, 0.12)' : 'rgba(255, 255, 255, 0.04)',
-                  color: isUser ? 'var(--cyan-neon)' : 'var(--text-primary)',
-                  boxShadow: isUser ? '0 0 20px rgba(0, 245, 255, 0.15)' : 'none',
-                  border: isUser ? '1px solid rgba(0, 245, 255, 0.35)' : '1px solid var(--glass-border)',
+                  backgroundColor: isUser ? 'var(--blue-600)' : 'var(--bg-surface)',
+                  color: isUser ? '#FFFFFF' : 'var(--text-primary)',
+                  boxShadow: isUser ? '0 2px 8px rgba(37, 99, 235, 0.22)' : 'var(--shadow-card)',
+                  border: isUser ? '1px solid var(--blue-700)' : '1px solid var(--glass-border)',
                   lineHeight: 1.6,
                   fontSize: '14px',
                   position: 'relative'
