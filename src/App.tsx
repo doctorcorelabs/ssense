@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import type { ActiveTab } from './types/stroke';
 import { Navbar } from './components/layout/Navbar';
+import { HemodynamicRibbon } from './components/layout/HemodynamicRibbon';
 import { CommandDock } from './components/layout/CommandDock';
 import { Footer } from './components/layout/Footer';
 import { ConfigModal } from './components/common/ConfigModal';
+import { AspectsCalculatorModal } from './components/common/AspectsCalculatorModal';
+import { CircleOfWillisModal } from './components/common/CircleOfWillisModal';
 
 import { OverviewHub } from './components/modules/OverviewHub';
 import { AnatomyStudio } from './components/studios/AnatomyStudio';
@@ -11,11 +14,11 @@ import { EmpathyStudio } from './components/studios/EmpathyStudio';
 import { RehabStudio } from './components/studios/RehabStudio';
 import { AICopilotStudio } from './components/studios/AICopilotStudio';
 
-
-
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
   const [isConfigOpen, setIsConfigOpen] = useState<boolean>(false);
+  const [isAspectsOpen, setIsAspectsOpen] = useState<boolean>(false);
+  const [isCircleOfWillisOpen, setIsCircleOfWillisOpen] = useState<boolean>(false);
 
   return (
     <div className="app-wrapper">
@@ -24,6 +27,12 @@ export const App: React.FC = () => {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         onOpenSettings={() => setIsConfigOpen(true)}
+      />
+
+      {/* Living Hemodynamic Telemetry, Saver JL Time-is-Brain & Cath Lab Switcher Ribbon */}
+      <HemodynamicRibbon
+        onOpenAspects={() => setIsAspectsOpen(true)}
+        onOpenCircleOfWillis={() => setIsCircleOfWillisOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -69,6 +78,18 @@ export const App: React.FC = () => {
       <ConfigModal
         isOpen={isConfigOpen}
         onClose={() => setIsConfigOpen(false)}
+      />
+
+      {/* Alberta Stroke Program Early CT Score (ASPECTS) Modal */}
+      <AspectsCalculatorModal
+        isOpen={isAspectsOpen}
+        onClose={() => setIsAspectsOpen(false)}
+      />
+
+      {/* Circle of Willis Collateral Flow Simulator Modal */}
+      <CircleOfWillisModal
+        isOpen={isCircleOfWillisOpen}
+        onClose={() => setIsCircleOfWillisOpen(false)}
       />
     </div>
   );
