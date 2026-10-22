@@ -130,7 +130,9 @@ export const AINeurologistChat: React.FC = () => {
   // Markdown & Structured Formatting Renderer
   // -------------------------------------------------------------
   const formatInline = (str: string): React.ReactNode => {
-    const parts = str.split(/(\*\*.*?\*\*|`.*?`)/g);
+    // Normalize spacing if < or > is directly adjacent to letters and numbers (e.g., findings<3 -> findings < 3)
+    const normalized = str.replace(/([a-zA-Z])([<>])(\d)/g, '$1 $2 $3');
+    const parts = normalized.split(/(\*\*.*?\*\*|`.*?`)/g);
     return parts.map((part, i) => {
       if (part.startsWith('**') && part.endsWith('**')) {
         return <strong key={i} style={{ fontWeight: 700, color: 'inherit' }}>{part.slice(2, -2)}</strong>;
@@ -156,25 +158,96 @@ export const AINeurologistChat: React.FC = () => {
     const lines = text.split('\n');
     const elements: React.ReactNode[] = [];
 
-    lines.forEach((line, lineIdx) => {
+    const isTableRow = (l: string) => {
+      const trimmed = l.trim();
+      return trimmed.startsWith('|') && trimmed.endsWith('|') && trimmed.split('|').length >= 3;
+    };
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const trimmed = line.trim();
+
+      // 1. Table Detection
+      if (isTableRow(line)) {
+        const tableLines: string[] = [];
+        while (i < lines.length && isTableRow(lines[i])) {
+          tableLines.push(lines[i].trim());
+          i++;
+        }
+        i--; // step back one since the for loop will i++
+
+        if (tableLines.length >= 2) {
+          const rawHeaders = tableLines[0].split('|').slice(1, -1).map(h => h.trim());
+          const isSeparator = /^\|?(\s*:?-+:?\s*\|?)+$/.test(tableLines[1]);
+          const dataRows = (isSeparator ? tableLines.slice(2) : tableLines.slice(1))
+            .map(rowLine => rowLine.split('|').slice(1, -1).map(cell => cell.trim()));
+
+          elements.push(
+            <div key={`table-${i}`} style={{
+              overflowX: 'auto',
+              margin: '10px 0',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--glass-border)',
+              backgroundColor: 'var(--bg-canvas)',
+              boxShadow: 'var(--shadow-subtle)'
+            }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
+                <thead>
+                  <tr style={{ backgroundColor: 'var(--bg-surface-sub)', borderBottom: '2px solid var(--glass-border)' }}>
+                    {rawHeaders.map((headerText, hIdx) => (
+                      <th key={hIdx} style={{ padding: '8px 12px', fontWeight: 800, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>
+                        {formatInline(headerText)}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {dataRows.map((rowCells, rIdx) => (
+                    <tr key={rIdx} style={{
+                      borderBottom: rIdx === dataRows.length - 1 ? 'none' : '1px solid var(--glass-border)',
+                      backgroundColor: rIdx % 2 === 0 ? 'var(--bg-surface)' : 'var(--bg-canvas)'
+                    }}>
+                      {rowCells.map((cellText, cIdx) => (
+                        <td key={cIdx} style={{ padding: '8px 12px', color: 'var(--text-secondary)', verticalAlign: 'top', lineHeight: 1.5 }}>
+                          {formatInline(cellText)}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+          continue;
+        }
+      }
+
+      // 2. Headings
       if (line.startsWith('#### ') || line.startsWith('### ')) {
         const headingText = line.replace(/^#{3,4}\s+/, '');
         elements.push(
-          <div key={lineIdx} style={{ fontSize: '13.5px', fontWeight: 800, color: 'var(--text-primary)', marginTop: '10px', marginBottom: '4px' }}>
+          <div key={i} style={{ fontSize: '13.5px', fontWeight: 800, color: 'var(--text-primary)', marginTop: '10px', marginBottom: '4px' }}>
             {formatInline(headingText)}
           </div>
         );
-      } else if (line.startsWith('# ') || line.startsWith('## ')) {
+        continue;
+      }
+
+      if (line.startsWith('# ') || line.startsWith('## ')) {
         const headingText = line.replace(/^#{1,2}\s+/, '');
         elements.push(
-          <div key={lineIdx} style={{ fontSize: '14.5px', fontWeight: 800, color: '#0369a1', marginTop: '12px', marginBottom: '6px' }}>
+          <div key={i} style={{ fontSize: '14.5px', fontWeight: 800, color: '#0369a1', marginTop: '12px', marginBottom: '6px' }}>
             {formatInline(headingText)}
           </div>
         );
-      } else if (line.startsWith('> ')) {
+        continue;
+      }
+
+      // 3. Blockquotes / Alerts
+      if (line.startsWith('> ')) {
         const quoteText = line.replace(/^>\s+/, '');
         elements.push(
-          <div key={lineIdx} style={{
+          <div key={i} style={{
             padding: '8px 12px',
             backgroundColor: '#fff1f2',
             borderLeft: '3px solid #e11d48',
@@ -186,35 +259,71 @@ export const AINeurologistChat: React.FC = () => {
             {formatInline(quoteText)}
           </div>
         );
-      } else if (line.startsWith('- [ ] ') || line.startsWith('- [x] ') || line.startsWith('- [X] ')) {
-        const isChecked = line.toLowerCase().startsWith('- [x] ');
-        const checkText = line.replace(/^-\s+\[[ xX]\]\s+/, '');
+        continue;
+      }
+
+      // 4. Checklist / Checkboxes (Supports '- [ ]', '* [ ]', and '[ ]' or '[x]')
+      const checkboxMatch = line.match(/^[-*]?\s*\[([ xX])\]\s*(.*)$/);
+      if (checkboxMatch) {
+        const isChecked = checkboxMatch[1].toLowerCase() === 'x';
+        const checkText = checkboxMatch[2];
         elements.push(
-          <div key={lineIdx} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', margin: '3px 0' }}>
-            <input type="checkbox" checked={isChecked} readOnly style={{ accentColor: '#2563eb' }} />
+          <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '12.5px', margin: '4px 0' }}>
+            <input
+              type="checkbox"
+              checked={isChecked}
+              readOnly
+              style={{ accentColor: '#2563eb', marginTop: '2px', flexShrink: 0, cursor: 'default' }}
+            />
             <span>{formatInline(checkText)}</span>
           </div>
         );
-      } else if (line.startsWith('- ') || line.startsWith('* ')) {
+        continue;
+      }
+
+      // 5. Numbered Lists (e.g. "1. ", "2. ")
+      const numListMatch = line.match(/^(\d+)\.\s+(.*)$/);
+      if (numListMatch) {
+        elements.push(
+          <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '13px', margin: '3px 0' }}>
+            <span style={{ color: 'var(--blue-600)', fontWeight: 700, fontFamily: 'var(--font-mono)', minWidth: '16px' }}>
+              {numListMatch[1]}.
+            </span>
+            <span>{formatInline(numListMatch[2])}</span>
+          </div>
+        );
+        continue;
+      }
+
+      // 6. Bullet Lists
+      if (line.startsWith('- ') || line.startsWith('* ')) {
         const bulletText = line.replace(/^[-*]\s+/, '');
         elements.push(
-          <div key={lineIdx} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '13px', margin: '2px 0' }}>
+          <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '13px', margin: '2px 0' }}>
             <span style={{ color: '#2563eb', fontWeight: 'bold' }}>•</span>
             <span>{formatInline(bulletText)}</span>
           </div>
         );
-      } else if (line.trim() === '---') {
-        elements.push(<hr key={lineIdx} style={{ border: 'none', borderTop: '1px solid var(--glass-border)', margin: '10px 0' }} />);
-      } else if (line.trim() !== '') {
+        continue;
+      }
+
+      // 7. Horizontal Divider
+      if (trimmed === '---' || trimmed === '***') {
+        elements.push(<hr key={i} style={{ border: 'none', borderTop: '1px solid var(--glass-border)', margin: '10px 0' }} />);
+        continue;
+      }
+
+      // 8. Normal Paragraph
+      if (trimmed !== '') {
         elements.push(
-          <p key={lineIdx} style={{ margin: '3px 0', fontSize: '13px', lineHeight: 1.55 }}>
+          <p key={i} style={{ margin: '3px 0', fontSize: '13px', lineHeight: 1.55 }}>
             {formatInline(line)}
           </p>
         );
       } else {
-        elements.push(<div key={lineIdx} style={{ height: '4px' }} />);
+        elements.push(<div key={i} style={{ height: '4px' }} />);
       }
-    });
+    }
 
     return elements;
   };
@@ -370,11 +479,11 @@ ${text}
     <div style={{
       display: 'flex',
       flexDirection: 'column',
-      height: 'calc(100vh - 200px)',
-      minHeight: '620px',
-      maxHeight: '760px',
+      height: 'calc(100vh - 220px)',
+      minHeight: '520px',
+      maxHeight: '740px',
       borderRadius: 'var(--radius-xl)',
-      backgroundColor: '#ffffff',
+      backgroundColor: 'var(--bg-surface)',
       border: '1px solid var(--glass-border)',
       boxShadow: 'var(--shadow-subtle)',
       overflow: 'hidden'
@@ -383,7 +492,7 @@ ${text}
       <div style={{
         padding: '14px 20px',
         borderBottom: '1px solid var(--glass-border)',
-        backgroundColor: '#ffffff',
+        backgroundColor: 'var(--bg-surface)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -455,7 +564,7 @@ ${text}
         </div>
 
         {/* Onset Pill */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: '#ffffff', padding: '3px 8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--glass-border)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: 'var(--bg-surface)', padding: '3px 8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--glass-border)' }}>
           <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>Onset:</span>
           <select
             value={contextOnset}
@@ -470,7 +579,7 @@ ${text}
         </div>
 
         {/* Territory Pill */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: '#ffffff', padding: '3px 8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--glass-border)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: 'var(--bg-surface)', padding: '3px 8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--glass-border)' }}>
           <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>Vessel:</span>
           <select
             value={contextVessel}
@@ -486,7 +595,7 @@ ${text}
         </div>
 
         {/* BP Pill */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: '#ffffff', padding: '3px 8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--glass-border)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: 'var(--bg-surface)', padding: '3px 8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--glass-border)' }}>
           <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>BP:</span>
           <select
             value={contextBP}
@@ -500,7 +609,7 @@ ${text}
         </div>
 
         {/* NIHSS Pill */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: '#ffffff', padding: '3px 8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--glass-border)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: 'var(--bg-surface)', padding: '3px 8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--glass-border)' }}>
           <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>NIHSS:</span>
           <select
             value={contextNIHSS}
@@ -554,8 +663,8 @@ ${text}
 
               {/* Bubble Card */}
               <div style={{
-                maxWidth: '82%',
-                backgroundColor: isUser ? 'var(--blue-600)' : '#ffffff',
+                maxWidth: '90%',
+                backgroundColor: isUser ? 'var(--blue-600)' : 'var(--bg-surface)',
                 color: isUser ? '#ffffff' : 'var(--text-primary)',
                 borderRadius: isUser ? '16px 4px 16px 16px' : '4px 16px 16px 16px',
                 border: isUser ? 'none' : '1px solid var(--glass-border)',
@@ -659,7 +768,7 @@ ${text}
       {/* 4. Pinned Bottom Input Dock (Always Visible!) */}
       <div style={{
         padding: '10px 18px',
-        backgroundColor: '#ffffff',
+        backgroundColor: 'var(--bg-surface)',
         borderTop: '1px solid var(--glass-border)',
         display: 'flex',
         flexDirection: 'column',
