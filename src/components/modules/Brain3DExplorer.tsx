@@ -478,7 +478,7 @@ export const Brain3DExplorer: React.FC = () => {
                 Circle of Willis Real-Time Perfusion
               </span>
             </div>
-            <h1 style={{ fontSize: '32px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '8px', letterSpacing: '-0.02em' }}>
+            <h1 style={{ fontSize: '32px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px', letterSpacing: '-0.02em' }}>
               3D Interactive Brain Vessel & Stroke Explorer
             </h1>
             <p style={{ color: 'var(--text-muted)', maxWidth: '820px', fontSize: '15px', lineHeight: 1.6 }}>
@@ -489,10 +489,10 @@ export const Brain3DExplorer: React.FC = () => {
           {/* Stroke Pathology Selector */}
           <div style={{
             display: 'flex',
-            backgroundColor: 'var(--bg-muted)',
+            backgroundColor: 'var(--bg-raised)',
             padding: '4px',
             borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--border-light)'
+            border: '1px solid var(--glass-border)'
           }}>
             <button
               onClick={() => setStrokeType('ischemic')}
@@ -538,7 +538,7 @@ export const Brain3DExplorer: React.FC = () => {
           <div style={{
             padding: '14px 20px',
             backgroundColor: viewMode === 'dsa' ? '#090d16' : '#ffffff',
-            borderBottom: '1px solid var(--border-light)',
+            borderBottom: '1px solid var(--glass-border)',
             display: 'flex',
             flexWrap: 'wrap',
             alignItems: 'center',
@@ -547,7 +547,7 @@ export const Brain3DExplorer: React.FC = () => {
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <span className="pulse-active" style={{ backgroundColor: strokeType === 'ischemic' ? '#0891b2' : '#e11d48' }}></span>
-              <span style={{ fontSize: '13px', fontWeight: 700, color: viewMode === 'dsa' ? '#38bdf8' : 'var(--text-main)' }}>
+              <span style={{ fontSize: '13px', fontWeight: 700, color: viewMode === 'dsa' ? '#38bdf8' : 'var(--text-primary)' }}>
                 {activeInfo.fullName}
               </span>
             </div>
@@ -595,8 +595,8 @@ export const Brain3DExplorer: React.FC = () => {
           {/* Bottom Viewport Legend & Guidance */}
           <div style={{
             padding: '12px 20px',
-            backgroundColor: viewMode === 'dsa' ? '#090d16' : 'var(--bg-muted)',
-            borderTop: '1px solid var(--border-light)',
+            backgroundColor: viewMode === 'dsa' ? '#090d16' : 'var(--bg-raised)',
+            borderTop: '1px solid var(--glass-border)',
             display: 'flex',
             flexWrap: 'wrap',
             alignItems: 'center',
@@ -627,20 +627,20 @@ export const Brain3DExplorer: React.FC = () => {
           {/* Hemodynamic Doppler & Perfusion Metrics */}
           <div className="glass-card" style={{ padding: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-              <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--primary-700)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--cyan-300)', textTransform: 'uppercase' }}>
                 Transcranial Doppler & Angio Metrics
               </span>
-              <Activity size={18} color="var(--primary-600)" />
+              <Activity size={18} color="var(--cyan-400)" />
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '14px', marginBottom: '16px' }}>
               <div style={{
                 padding: '12px 14px',
-                backgroundColor: 'var(--bg-muted)',
+                backgroundColor: 'var(--bg-raised)',
                 borderRadius: 'var(--radius-md)'
               }}>
                 <span style={{ fontSize: '11px', color: 'var(--text-subtle)', fontWeight: 600 }}>Mean Flow Velocity</span>
-                <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-main)', fontFamily: 'var(--font-mono)' }}>
+                <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
                   {activeInfo.velocity} cm/s
                 </div>
                 <span style={{ fontSize: '11px', color: activeInfo.velocity < 20 ? '#be123c' : '#15803d', fontWeight: 600 }}>
@@ -650,11 +650,11 @@ export const Brain3DExplorer: React.FC = () => {
 
               <div style={{
                 padding: '12px 14px',
-                backgroundColor: 'var(--bg-muted)',
+                backgroundColor: 'var(--bg-raised)',
                 borderRadius: 'var(--radius-md)'
               }}>
                 <span style={{ fontSize: '11px', color: 'var(--text-subtle)', fontWeight: 600 }}>Pulsatility Index (PI)</span>
-                <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-main)', fontFamily: 'var(--font-mono)' }}>
+                <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
                   {activeInfo.pi}
                 </div>
                 <span style={{ fontSize: '11px', color: activeInfo.pi > 1.2 ? '#b45309' : '#15803d', fontWeight: 600 }}>
@@ -676,7 +676,7 @@ export const Brain3DExplorer: React.FC = () => {
               <span style={{ fontWeight: 700, color: strokeType === 'ischemic' ? '#be123c' : '#b45309' }}>
                 Angiographic Recanalization:
               </span>
-              <span style={{ fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--text-main)' }}>
+              <span style={{ fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--text-primary)' }}>
                 {activeInfo.ticiScore}
               </span>
             </div>
@@ -684,7 +684,7 @@ export const Brain3DExplorer: React.FC = () => {
 
           {/* Neurologic Symptoms & Clinical Syndrome */}
           <div className="glass-card" style={{ padding: '24px', flex: 1 }}>
-            <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '4px' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>
               Clinical Stroke Syndrome
             </h3>
             <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', marginBottom: '14px' }}>
@@ -706,7 +706,7 @@ export const Brain3DExplorer: React.FC = () => {
               </p>
             </div>
 
-            <h4 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '10px' }}>
+            <h4 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '10px' }}>
               Cardinal Neurological Signs:
             </h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -730,7 +730,7 @@ export const Brain3DExplorer: React.FC = () => {
               marginTop: '20px',
               borderRadius: 'var(--radius-md)',
               overflow: 'hidden',
-              border: '1px solid var(--border-light)',
+              border: '1px solid var(--glass-border)',
               position: 'relative'
             }}>
               <img 

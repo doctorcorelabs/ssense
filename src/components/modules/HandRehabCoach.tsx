@@ -114,8 +114,11 @@ export const HandRehabCoach: React.FC = () => {
       // Draw Palm Base Landmark
       ctx.beginPath();
       ctx.arc(centerX, centerY, 16, 0, Math.PI * 2);
-      ctx.fillStyle = '#0284c7';
+      ctx.fillStyle = romVal > 75 ? '#00ff88' : '#00f5ff';
+      ctx.shadowColor = romVal > 75 ? '#00ff88' : '#00f5ff';
+      ctx.shadowBlur = 14;
       ctx.fill();
+      ctx.shadowBlur = 0;
 
       // Draw 5 Fingers Bones with Dynamic Angles based on ROM
       const fingerAngles = [-0.6, -0.3, 0, 0.3, 0.6];
@@ -131,15 +134,19 @@ export const HandRehabCoach: React.FC = () => {
         const midX = centerX + Math.sin(spreadAngle) * (len * 0.55);
         const midY = centerY - Math.cos(spreadAngle) * (len * 0.55);
 
-        // Bone lines
+        // Bone lines with neon glow
         ctx.beginPath();
         ctx.moveTo(centerX, centerY);
         ctx.lineTo(midX, midY);
         ctx.lineTo(tipX, tipY);
-        ctx.strokeStyle = romVal > 75 ? '#10b981' : '#0284c7';
-        ctx.lineWidth = 6;
+        const boneColor = romVal > 75 ? '#00ff88' : '#00f5ff';
+        ctx.strokeStyle = boneColor;
+        ctx.shadowColor = boneColor;
+        ctx.shadowBlur = 10;
+        ctx.lineWidth = 5;
         ctx.lineCap = 'round';
         ctx.stroke();
+        ctx.shadowBlur = 0;
 
         // Joint knuckles
         [
@@ -147,9 +154,9 @@ export const HandRehabCoach: React.FC = () => {
           { x: tipX, y: tipY }
         ].forEach((joint) => {
           ctx.beginPath();
-          ctx.arc(joint.x, joint.y, 8, 0, Math.PI * 2);
+          ctx.arc(joint.x, joint.y, 7, 0, Math.PI * 2);
           ctx.fillStyle = '#ffffff';
-          ctx.strokeStyle = romVal > 75 ? '#10b981' : '#0284c7';
+          ctx.strokeStyle = boneColor;
           ctx.lineWidth = 3;
           ctx.fill();
           ctx.stroke();
@@ -159,9 +166,9 @@ export const HandRehabCoach: React.FC = () => {
       // Target Range of Motion Arc
       ctx.beginPath();
       ctx.arc(centerX, centerY, 150, Math.PI * 1.1, Math.PI * 1.9);
-      ctx.strokeStyle = '#e2e8f0';
-      ctx.lineWidth = 4;
-      ctx.setLineDash([4, 6]);
+      ctx.strokeStyle = 'rgba(0, 245, 255, 0.25)';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([6, 8]);
       ctx.stroke();
       ctx.setLineDash([]);
 
@@ -214,7 +221,7 @@ export const HandRehabCoach: React.FC = () => {
             Neuro-Rehabilitation
           </span>
         </div>
-        <h2 style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '8px' }}>
+        <h2 style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px' }}>
           AI Hand & Finger Motor Rehab Coach
         </h2>
         <p style={{ color: 'var(--text-muted)', maxWidth: '750px', fontSize: '15px' }}>
@@ -245,7 +252,7 @@ export const HandRehabCoach: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span className="pulse-active"></span>
-              <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-main)' }}>
+              <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-primary)' }}>
                 {isWebcamActive ? 'Live Camera Feed' : (isSimulating ? 'Simulated Kinematic Exercise' : 'Coach Ready')}
               </span>
             </div>
@@ -282,9 +289,9 @@ export const HandRehabCoach: React.FC = () => {
           <div style={{
             width: '100%',
             height: '420px',
-            backgroundColor: '#ffffff',
+            backgroundColor: 'var(--bg-raised)',
             borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--border-light)',
+            border: '1px solid var(--glass-border)',
             overflow: 'hidden',
             boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.02)',
             position: 'relative',
@@ -303,13 +310,13 @@ export const HandRehabCoach: React.FC = () => {
               backdropFilter: 'blur(8px)',
               padding: '10px 16px',
               borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--border-light)',
+              border: '1px solid var(--glass-border)',
               boxShadow: 'var(--shadow-sm)'
             }}>
               <span style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700 }}>
                 Active Extension (ROM)
               </span>
-              <div style={{ fontSize: '22px', fontWeight: 800, color: currentROM > 75 ? 'var(--success-600)' : 'var(--primary-600)', fontFamily: 'var(--font-mono)' }}>
+              <div style={{ fontSize: '22px', fontWeight: 800, color: currentROM > 75 ? 'var(--green-400)' : 'var(--cyan-400)', fontFamily: 'var(--font-mono)' }}>
                 {currentROM}%
               </div>
             </div>
@@ -323,14 +330,14 @@ export const HandRehabCoach: React.FC = () => {
               backdropFilter: 'blur(8px)',
               padding: '10px 16px',
               borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--border-light)',
+              border: '1px solid var(--glass-border)',
               boxShadow: 'var(--shadow-sm)',
               textAlign: 'right'
             }}>
               <span style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700 }}>
                 Completed Reps
               </span>
-              <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-main)', fontFamily: 'var(--font-mono)' }}>
+              <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
                 {repCount} / {currentDrill.targetReps}
               </div>
             </div>
@@ -352,10 +359,10 @@ export const HandRehabCoach: React.FC = () => {
             <span className="badge badge-primary" style={{ marginBottom: '8px' }}>
               Active Prescription Drill
             </span>
-            <h3 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '4px' }}>
+            <h3 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>
               {currentDrill.name}
             </h3>
-            <p style={{ fontSize: '13px', color: 'var(--primary-700)', fontWeight: 600, marginBottom: '16px' }}>
+            <p style={{ fontSize: '13px', color: 'var(--cyan-300)', fontWeight: 600, marginBottom: '16px' }}>
               {currentDrill.goal}
             </p>
 
@@ -375,16 +382,16 @@ export const HandRehabCoach: React.FC = () => {
             {repCount >= currentDrill.targetReps ? (
               <div style={{
                 padding: '16px',
-                backgroundColor: 'var(--success-50)',
+                backgroundColor: 'rgba(0,255,136,0.07)',
                 border: '1px solid var(--success-100)',
                 borderRadius: 'var(--radius-md)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '12px'
               }}>
-                <Award size={24} color="var(--success-600)" />
+                <Award size={24} color="var(--green-400)" />
                 <div>
-                  <h5 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--success-600)' }}>
+                  <h5 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--green-400)' }}>
                     Drill Target Reached!
                   </h5>
                   <p style={{ fontSize: '12px', color: 'var(--text-body)', marginTop: '2px' }}>
@@ -395,7 +402,7 @@ export const HandRehabCoach: React.FC = () => {
             ) : (
               <div style={{
                 padding: '12px 16px',
-                backgroundColor: 'var(--bg-muted)',
+                backgroundColor: 'var(--bg-raised)',
                 borderRadius: 'var(--radius-md)',
                 fontSize: '12.5px',
                 color: 'var(--text-muted)'
@@ -405,9 +412,9 @@ export const HandRehabCoach: React.FC = () => {
             )}
           </div>
 
-          <div className="glass-card" style={{ padding: '20px', backgroundColor: 'var(--primary-50)', borderColor: 'var(--primary-100)' }}>
+          <div className="glass-card" style={{ padding: '20px', backgroundColor: 'rgba(0,245,255,0.07)', borderColor: 'rgba(0,245,255,0.1)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-              <Sparkles size={16} color="var(--primary-700)" />
+              <Sparkles size={16} color="var(--cyan-300)" />
               <h4 style={{ fontSize: '13.5px', fontWeight: 700, color: 'var(--primary-800)' }}>
                 Physical Therapist Insight
               </h4>

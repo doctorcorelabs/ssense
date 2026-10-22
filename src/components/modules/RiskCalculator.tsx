@@ -80,7 +80,7 @@ export const RiskCalculator: React.FC = () => {
             CHA₂DS₂-VASc & Framingham Hybrid
           </span>
         </div>
-        <h2 style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '8px' }}>
+        <h2 style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px' }}>
           Personalized Stroke Risk Index & Lifestyle Modeler
         </h2>
         <p style={{ color: 'var(--text-muted)', maxWidth: '750px', fontSize: '15px' }}>
@@ -92,14 +92,14 @@ export const RiskCalculator: React.FC = () => {
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.3fr) minmax(340px, 1fr)', gap: '24px' }}>
         {/* Left: Input Form Parameters */}
         <div className="glass-card" style={{ padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <h3 style={{ fontSize: '18px', fontWeight: 700, borderBottom: '1px solid var(--border-light)', paddingBottom: '12px' }}>
+          <h3 style={{ fontSize: '18px', fontWeight: 700, borderBottom: '1px solid var(--glass-border)', paddingBottom: '12px' }}>
             Biometric & Cardiovascular Profile
           </h3>
 
           {/* Age & Sex */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-main)', marginBottom: '6px' }}>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px' }}>
                 Age: {profile.age} years
               </label>
               <input
@@ -113,7 +113,7 @@ export const RiskCalculator: React.FC = () => {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-main)', marginBottom: '6px' }}>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px' }}>
                 Biological Sex
               </label>
               <div style={{ display: 'flex', gap: '8px' }}>
@@ -138,8 +138,8 @@ export const RiskCalculator: React.FC = () => {
           {/* Blood Pressure Sliders */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-main)', marginBottom: '6px' }}>
-                Systolic BP: <span style={{ color: profile.systolicBP >= 140 ? 'var(--danger-500)' : 'var(--primary-600)', fontWeight: 700 }}>{profile.systolicBP} mmHg</span>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px' }}>
+                Systolic BP: <span style={{ color: profile.systolicBP >= 140 ? 'var(--red-500)' : 'var(--cyan-400)', fontWeight: 700 }}>{profile.systolicBP} mmHg</span>
               </label>
               <input
                 type="range"
@@ -152,8 +152,8 @@ export const RiskCalculator: React.FC = () => {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-main)', marginBottom: '6px' }}>
-                Diastolic BP: <span style={{ color: profile.diastolicBP >= 90 ? 'var(--danger-500)' : 'var(--primary-600)', fontWeight: 700 }}>{profile.diastolicBP} mmHg</span>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px' }}>
+                Diastolic BP: <span style={{ color: profile.diastolicBP >= 90 ? 'var(--red-500)' : 'var(--cyan-400)', fontWeight: 700 }}>{profile.diastolicBP} mmHg</span>
               </label>
               <input
                 type="range"
@@ -186,12 +186,12 @@ export const RiskCalculator: React.FC = () => {
                     justifyContent: 'space-between',
                     padding: '10px 14px',
                     borderRadius: 'var(--radius-md)',
-                    backgroundColor: checked ? 'var(--primary-50)' : 'var(--bg-muted)',
-                    border: checked ? '1px solid var(--primary-200)' : '1px solid var(--border-light)',
+                    backgroundColor: checked ? 'rgba(0,245,255,0.07)' : 'var(--bg-raised)',
+                    border: checked ? '1px solid var(--primary-200)' : '1px solid var(--glass-border)',
                     cursor: 'pointer',
                     fontSize: '13.5px',
                     fontWeight: 500,
-                    color: 'var(--text-main)',
+                    color: 'var(--text-primary)',
                     transition: 'all 0.15s ease'
                   }}
                 >
@@ -200,7 +200,7 @@ export const RiskCalculator: React.FC = () => {
                     type="checkbox"
                     checked={checked}
                     onChange={(e) => setProfile({ ...profile, [item.key]: e.target.checked })}
-                    style={{ width: '18px', height: '18px', accentColor: 'var(--primary-600)', cursor: 'pointer' }}
+                    style={{ width: '18px', height: '18px', accentColor: 'var(--cyan-400)', cursor: 'pointer' }}
                   />
                 </label>
               );
@@ -220,34 +220,34 @@ export const RiskCalculator: React.FC = () => {
               fontSize: '56px',
               fontWeight: 800,
               fontFamily: 'var(--font-mono)',
-              color: riskPercent >= 20 ? 'var(--danger-500)' : (riskPercent >= 10 ? 'var(--warning-500)' : 'var(--success-500)'),
+              color: riskPercent >= 20 ? 'var(--red-neon)' : (riskPercent >= 10 ? 'var(--amber-400)' : 'var(--green-neon)'),
               lineHeight: 1
             }}>
               {riskPercent}%
             </div>
 
-            <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-main)', marginTop: '8px' }}>
+            <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '8px' }}>
               CHA₂DS₂-VASc Clinical Score: <strong>{currentScore} Points</strong>
             </p>
 
             <div style={{
               marginTop: '16px',
               padding: '12px',
-              backgroundColor: 'var(--bg-muted)',
+              backgroundColor: 'var(--bg-raised)',
               borderRadius: 'var(--radius-md)',
               fontSize: '12.5px',
               color: 'var(--text-muted)'
             }}>
               {currentScore >= 4 ? (
-                <span style={{ color: 'var(--danger-600)', fontWeight: 600 }}>
+                <span style={{ color: 'var(--red-400)', fontWeight: 600 }}>
                   High Risk Category: Comprehensive medical therapy & cardiologist review recommended.
                 </span>
               ) : currentScore >= 2 ? (
-                <span style={{ color: 'var(--warning-600)', fontWeight: 600 }}>
+                <span style={{ color: 'var(--amber-400)', fontWeight: 600 }}>
                   Moderate Risk Category: Aggressive lifestyle modifications advised.
                 </span>
               ) : (
-                <span style={{ color: 'var(--success-600)', fontWeight: 600 }}>
+                <span style={{ color: 'var(--green-400)', fontWeight: 600 }}>
                   Low Baseline Risk: Maintain consistent physical activity and balanced diet.
                 </span>
               )}
@@ -255,21 +255,21 @@ export const RiskCalculator: React.FC = () => {
           </div>
 
           {/* "What-If" Life-Saving Simulation Banner */}
-          <div className="glass-card" style={{ padding: '24px', backgroundColor: 'var(--success-50)', borderColor: 'var(--success-100)' }}>
+          <div className="glass-card" style={{ padding: '24px', backgroundColor: 'rgba(0,255,136,0.06)', borderColor: 'rgba(0, 255, 136, 0.25)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-              <TrendingDown size={20} color="var(--success-600)" />
-              <h4 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--success-600)' }}>
+              <TrendingDown size={20} color="var(--green-400)" />
+              <h4 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--green-400)' }}>
                 "What-If" Lifestyle Impact Modeling
               </h4>
             </div>
-            <p style={{ fontSize: '13px', color: 'var(--text-body)', lineHeight: 1.5 }}>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               If you achieve normal blood pressure (&lt;120 mmHg) and abstain from smoking/vaping:
             </p>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '12px' }}>
-              <span style={{ fontSize: '28px', fontWeight: 800, color: 'var(--success-600)', fontFamily: 'var(--font-mono)' }}>
+              <span style={{ fontSize: '28px', fontWeight: 800, color: 'var(--green-neon)', fontFamily: 'var(--font-mono)' }}>
                 -{riskReductionDelta}%
               </span>
-              <span style={{ fontSize: '13px', color: 'var(--success-700)', fontWeight: 600 }}>
+              <span style={{ fontSize: '13px', color: 'var(--green-400)', fontWeight: 600 }}>
                 Drop in your 10-year stroke probability!
               </span>
             </div>
@@ -279,7 +279,7 @@ export const RiskCalculator: React.FC = () => {
           <div className="glass-card" style={{ padding: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Sparkles size={18} color="var(--primary-600)" />
+                <Sparkles size={18} color="var(--cyan-400)" />
                 <h4 style={{ fontSize: '15px', fontWeight: 700 }}>AI Epidemiologist Narrative</h4>
               </div>
 
@@ -297,7 +297,7 @@ export const RiskCalculator: React.FC = () => {
                 fontSize: '13px',
                 color: 'var(--text-body)',
                 lineHeight: 1.6,
-                backgroundColor: 'var(--bg-muted)',
+                backgroundColor: 'var(--bg-raised)',
                 padding: '16px',
                 borderRadius: 'var(--radius-md)',
                 maxHeight: '300px',

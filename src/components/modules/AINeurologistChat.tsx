@@ -179,7 +179,7 @@ export const AINeurologistChat: React.FC = () => {
                 Live SSE Stream
               </span>
             </div>
-            <h1 style={{ fontSize: '32px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '8px', letterSpacing: '-0.02em' }}>
+            <h1 style={{ fontSize: '32px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px', letterSpacing: '-0.02em' }}>
               Multi-Persona AI Stroke Consultation Station
             </h1>
             <p style={{ color: 'var(--text-muted)', maxWidth: '780px', fontSize: '15px', lineHeight: 1.6 }}>
@@ -190,14 +190,14 @@ export const AINeurologistChat: React.FC = () => {
           {/* Telemetry Badge */}
           <div style={{
             padding: '12px 18px',
-            backgroundColor: 'var(--bg-muted)',
+            backgroundColor: 'var(--bg-raised)',
             borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--border-light)',
+            border: '1px solid var(--glass-border)',
             display: 'flex',
             flexDirection: 'column',
             gap: '4px'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 700, color: 'var(--text-main)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)' }}>
               <Cpu size={14} color="#0891b2" />
               <span>Inference Engine: Active</span>
             </div>
@@ -220,8 +220,8 @@ export const AINeurologistChat: React.FC = () => {
                 className="glass-card glass-card-interactive"
                 style={{
                   padding: '18px',
-                  backgroundColor: isSelected ? 'var(--primary-50)' : '#ffffff',
-                  borderColor: isSelected ? 'var(--primary-400)' : 'var(--border-light)',
+                  backgroundColor: isSelected ? 'rgba(0,245,255,0.07)' : '#ffffff',
+                  borderColor: isSelected ? 'var(--primary-400)' : 'var(--glass-border)',
                   boxShadow: isSelected ? '0 4px 18px rgba(8, 145, 178, 0.18)' : 'var(--shadow-tactile)'
                 }}
               >
@@ -230,17 +230,17 @@ export const AINeurologistChat: React.FC = () => {
                     width: '36px',
                     height: '36px',
                     borderRadius: 'var(--radius-md)',
-                    backgroundColor: isSelected ? '#ffffff' : 'var(--bg-muted)',
+                    backgroundColor: isSelected ? '#ffffff' : 'var(--bg-raised)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    border: '1px solid var(--border-light)'
+                    border: '1px solid var(--glass-border)'
                   }}>
                     <IconComponent size={20} color={p.iconColor} />
                   </div>
                   <div>
-                    <h4 style={{ fontSize: '14.5px', fontWeight: 800, color: 'var(--text-main)' }}>{p.name}</h4>
-                    <span style={{ fontSize: '11.5px', color: 'var(--primary-700)', fontWeight: 600 }}>{p.role}</span>
+                    <h4 style={{ fontSize: '14.5px', fontWeight: 800, color: 'var(--text-primary)' }}>{p.name}</h4>
+                    <span style={{ fontSize: '11.5px', color: 'var(--cyan-300)', fontWeight: 600 }}>{p.role}</span>
                   </div>
                 </div>
                 <p style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.45 }}>
@@ -257,8 +257,8 @@ export const AINeurologistChat: React.FC = () => {
         {/* Chat Header Status */}
         <div style={{
           padding: '16px 24px',
-          borderBottom: '1px solid var(--border-light)',
-          backgroundColor: '#ffffff',
+          borderBottom: '1px solid var(--glass-border)',
+          backgroundColor: 'var(--bg-raised)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between'
@@ -268,7 +268,7 @@ export const AINeurologistChat: React.FC = () => {
               width: '38px',
               height: '38px',
               borderRadius: '50%',
-              backgroundColor: 'var(--primary-100)',
+              backgroundColor: 'rgba(0,245,255,0.1)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
@@ -277,7 +277,7 @@ export const AINeurologistChat: React.FC = () => {
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <h4 style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-main)' }}>
+                <h4 style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)' }}>
                   {currentPersona.name}
                 </h4>
                 <span className="pulse-active"></span>
@@ -320,7 +320,7 @@ export const AINeurologistChat: React.FC = () => {
                     width: '32px',
                     height: '32px',
                     borderRadius: '50%',
-                    backgroundColor: 'var(--primary-100)',
+                    backgroundColor: 'rgba(0,245,255,0.1)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -335,10 +335,10 @@ export const AINeurologistChat: React.FC = () => {
                   maxWidth: '78%',
                   padding: '14px 18px',
                   borderRadius: 'var(--radius-lg)',
-                  backgroundColor: isUser ? 'var(--primary-600)' : '#ffffff',
-                  color: isUser ? '#ffffff' : 'var(--text-main)',
-                  boxShadow: isUser ? '0 2px 8px rgba(8, 145, 178, 0.25)' : 'var(--shadow-tactile)',
-                  border: isUser ? 'none' : '1px solid var(--border-light)',
+                  backgroundColor: isUser ? 'rgba(0, 245, 255, 0.12)' : 'rgba(255, 255, 255, 0.04)',
+                  color: isUser ? 'var(--cyan-neon)' : 'var(--text-primary)',
+                  boxShadow: isUser ? '0 0 20px rgba(0, 245, 255, 0.15)' : 'none',
+                  border: isUser ? '1px solid rgba(0, 245, 255, 0.35)' : '1px solid var(--glass-border)',
                   lineHeight: 1.6,
                   fontSize: '14px',
                   position: 'relative'
@@ -387,7 +387,7 @@ export const AINeurologistChat: React.FC = () => {
                     width: '32px',
                     height: '32px',
                     borderRadius: '50%',
-                    backgroundColor: 'var(--text-main)',
+                    backgroundColor: 'var(--text-primary)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -407,8 +407,8 @@ export const AINeurologistChat: React.FC = () => {
         {/* Quick Question Chips */}
         <div style={{
           padding: '10px 20px',
-          backgroundColor: '#ffffff',
-          borderTop: '1px solid var(--border-light)',
+          backgroundColor: 'var(--bg-raised)',
+          borderTop: '1px solid var(--glass-border)',
           display: 'flex',
           alignItems: 'center',
           gap: '8px',
@@ -434,8 +434,8 @@ export const AINeurologistChat: React.FC = () => {
         {/* Input Bar */}
         <div style={{
           padding: '16px 20px',
-          backgroundColor: '#ffffff',
-          borderTop: '1px solid var(--border-light)',
+          backgroundColor: 'var(--bg-raised)',
+          borderTop: '1px solid var(--glass-border)',
           display: 'flex',
           gap: '12px',
           alignItems: 'center'
@@ -453,11 +453,11 @@ export const AINeurologistChat: React.FC = () => {
               flex: 1,
               padding: '12px 18px',
               borderRadius: 'var(--radius-lg)',
-              border: '1px solid var(--border-light)',
+              border: '1px solid var(--glass-border)',
               outline: 'none',
               fontSize: '14px',
-              backgroundColor: 'var(--bg-muted)',
-              color: 'var(--text-main)'
+              backgroundColor: 'var(--bg-raised)',
+              color: 'var(--text-primary)'
             }}
           />
           <button

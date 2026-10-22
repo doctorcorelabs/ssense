@@ -36,7 +36,7 @@ export const AphasiaLab: React.FC = () => {
             Language Center
           </span>
         </div>
-        <h2 style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '8px' }}>
+        <h2 style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px' }}>
           Aphasia Word-Struggle Simulator
         </h2>
         <p style={{ color: 'var(--text-muted)', maxWidth: '750px', fontSize: '15px' }}>
@@ -85,8 +85,8 @@ export const AphasiaLab: React.FC = () => {
               </div>
 
               <div style={{
-                backgroundColor: 'var(--primary-50)',
-                border: '1px solid var(--primary-100)',
+                backgroundColor: 'rgba(0,245,255,0.07)',
+                border: '1px solid rgba(0,245,255,0.1)',
                 padding: '16px',
                 borderRadius: 'var(--radius-md)',
                 marginBottom: '20px'
@@ -94,13 +94,13 @@ export const AphasiaLab: React.FC = () => {
                 <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--primary-800)', textTransform: 'uppercase' }}>
                   Your Intended Thought:
                 </span>
-                <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-main)', marginTop: '4px' }}>
+                <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '4px' }}>
                   "Doctor, I have a severe headache and I really need some water and pain medicine right away."
                 </p>
               </div>
 
               <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-main)', marginBottom: '8px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>
                   Try Typing Your Sentence Below (Notice how functional grammar words are rejected):
                 </label>
                 <input
@@ -119,20 +119,20 @@ export const AphasiaLab: React.FC = () => {
                     width: '100%',
                     padding: '12px 16px',
                     borderRadius: 'var(--radius-md)',
-                    border: '2px solid var(--border-light)',
+                    border: '2px solid var(--glass-border)',
                     fontSize: '15px',
                     outline: 'none',
-                    backgroundColor: 'var(--bg-muted)'
+                    backgroundColor: 'var(--bg-raised)'
                   }}
                 />
-                <span style={{ fontSize: '12px', color: 'var(--danger-500)', marginTop: '6px', display: 'block' }}>
+                <span style={{ fontSize: '12px', color: 'var(--red-500)', marginTop: '6px', display: 'block' }}>
                   *Grammatical syntax and connectors disappear; only strenuous telegraphic effort succeeds.
                 </span>
               </div>
 
               {/* Telegraphic Word Bank */}
               <div>
-                <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)', display: 'block', marginBottom: '8px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', display: 'block', marginBottom: '8px' }}>
                   Or construct using preserved telegraphic words:
                 </span>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
@@ -150,7 +150,7 @@ export const AphasiaLab: React.FC = () => {
 
                 <div style={{
                   padding: '16px',
-                  backgroundColor: '#ffffff',
+                  backgroundColor: 'var(--bg-raised)',
                   border: '1px dashed var(--border-subtle)',
                   borderRadius: 'var(--radius-md)',
                   minHeight: '60px'
@@ -158,7 +158,7 @@ export const AphasiaLab: React.FC = () => {
                   <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>
                     Produced Telegraphic Utterance:
                   </span>
-                  <p style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-main)', marginTop: '4px', fontFamily: 'var(--font-heading)' }}>
+                  <p style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '4px', fontFamily: 'var(--font-heading)' }}>
                     {brocaAttempt.length > 0 ? brocaAttempt.join(' ... ') : 'Click words above to speak...'}
                   </p>
                 </div>
@@ -193,13 +193,13 @@ export const AphasiaLab: React.FC = () => {
                     What You Hear (Neologistic & Paraphasic Speech):
                   </span>
                 </div>
-                <p style={{ fontSize: '17px', fontWeight: 600, color: '#0f172a', fontStyle: 'italic', lineHeight: 1.6 }}>
+                <p style={{ fontSize: '17px', fontWeight: 600, color: 'var(--text-primary)', fontStyle: 'italic', lineHeight: 1.6 }}>
                   "Please grasp the barking telescope resting upon the silver radiator so we may breakfast the clouds."
                 </p>
               </div>
 
               <div>
-                <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-main)', display: 'block', marginBottom: '12px' }}>
+                <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-primary)', display: 'block', marginBottom: '12px' }}>
                   What did the speaker actually intend to ask you?
                 </span>
 
@@ -218,12 +218,12 @@ export const AphasiaLab: React.FC = () => {
                         textAlign: 'left',
                         padding: '14px 18px',
                         backgroundColor: wernickeSelectedOption === opt.id 
-                          ? (opt.correct ? 'var(--success-50)' : 'var(--danger-50)')
-                          : 'var(--bg-muted)',
+                          ? (opt.correct ? 'rgba(0,255,136,0.07)' : 'rgba(255,45,85,0.07)')
+                          : 'var(--bg-raised)',
                         border: wernickeSelectedOption === opt.id
-                          ? (opt.correct ? '1px solid var(--success-500)' : '1px solid var(--danger-500)')
-                          : '1px solid var(--border-light)',
-                        color: 'var(--text-main)'
+                          ? (opt.correct ? '1px solid var(--success-500)' : '1px solid var(--red-500)')
+                          : '1px solid var(--glass-border)',
+                        color: 'var(--text-primary)'
                       }}
                     >
                       <span>{opt.id + 1}. {opt.text}</span>
@@ -234,11 +234,11 @@ export const AphasiaLab: React.FC = () => {
                 {wernickeSelectedOption !== null && (
                   <div style={{ marginTop: '16px', fontSize: '13px', color: 'var(--text-muted)' }}>
                     {wernickeSelectedOption === 1 ? (
-                      <span style={{ color: 'var(--success-600)', fontWeight: 600 }}>
+                      <span style={{ color: 'var(--green-400)', fontWeight: 600 }}>
                         ✓ Correct! "Barking telescope" was a neologistic paraphasia for "remote control".
                       </span>
                     ) : (
-                      <span style={{ color: 'var(--danger-600)', fontWeight: 600 }}>
+                      <span style={{ color: 'var(--red-400)', fontWeight: 600 }}>
                         ✕ Incorrect! Notice how fluent nonsense easily misleads both listener and speaker.
                       </span>
                     )}
@@ -265,7 +265,7 @@ export const AphasiaLab: React.FC = () => {
               <div style={{
                 textAlign: 'center',
                 padding: '36px',
-                backgroundColor: 'var(--bg-muted)',
+                backgroundColor: 'var(--bg-raised)',
                 borderRadius: 'var(--radius-lg)',
                 marginBottom: '20px'
               }}>
@@ -277,17 +277,17 @@ export const AphasiaLab: React.FC = () => {
               </div>
 
               <div style={{ marginBottom: '20px' }}>
-                <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)', display: 'block', marginBottom: '8px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', display: 'block', marginBottom: '8px' }}>
                   Circumlocution (How Anomic Patients Describe It):
                 </span>
                 <div style={{
                   padding: '14px',
-                  backgroundColor: 'var(--synapse-50)',
+                  backgroundColor: 'rgba(139,92,246,0.07)',
                   border: '1px solid var(--synapse-100)',
                   borderRadius: 'var(--radius-md)',
                   fontStyle: 'italic',
                   fontSize: '14px',
-                  color: 'var(--synapse-600)'
+                  color: 'var(--violet-400)'
                 }}>
                   "The ticking circle with hands... you strap it around your wrist to see if it's lunch time..."
                 </div>
@@ -307,15 +307,15 @@ export const AphasiaLab: React.FC = () => {
                 <div style={{
                   marginTop: '16px',
                   padding: '12px 16px',
-                  backgroundColor: 'var(--success-50)',
+                  backgroundColor: 'rgba(0,255,136,0.07)',
                   border: '1px solid var(--success-100)',
                   borderRadius: 'var(--radius-md)',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '10px'
                 }}>
-                  <CheckCircle size={18} color="var(--success-600)" />
-                  <span style={{ fontSize: '13.5px', color: 'var(--success-600)', fontWeight: 600 }}>
+                  <CheckCircle size={18} color="var(--green-400)" />
+                  <span style={{ fontSize: '13.5px', color: 'var(--green-400)', fontWeight: 600 }}>
                     Target Word: "Wristwatch" — in Anomia, concepts remain sharp, but phonological lookup fails.
                   </span>
                 </div>
@@ -328,7 +328,7 @@ export const AphasiaLab: React.FC = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div className="glass-card" style={{ padding: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-              <Brain size={20} color="var(--primary-600)" />
+              <Brain size={20} color="var(--cyan-400)" />
               <h4 style={{ fontSize: '16px', fontWeight: 700 }}>Anatomical Localization</h4>
             </div>
 
@@ -336,7 +336,7 @@ export const AphasiaLab: React.FC = () => {
               <div style={{
                 padding: '12px',
                 borderRadius: 'var(--radius-md)',
-                backgroundColor: activeType === 'broca' ? 'var(--primary-100)' : 'var(--bg-muted)',
+                backgroundColor: activeType === 'broca' ? 'rgba(0,245,255,0.1)' : 'var(--bg-raised)',
                 border: activeType === 'broca' ? '1px solid var(--primary-300)' : '1px solid transparent'
               }}>
                 <h5 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--primary-800)' }}>
@@ -350,7 +350,7 @@ export const AphasiaLab: React.FC = () => {
               <div style={{
                 padding: '12px',
                 borderRadius: 'var(--radius-md)',
-                backgroundColor: activeType === 'wernicke' ? 'var(--warning-100)' : 'var(--bg-muted)',
+                backgroundColor: activeType === 'wernicke' ? 'var(--warning-100)' : 'var(--bg-raised)',
                 border: activeType === 'wernicke' ? '1px solid var(--warning-500)' : '1px solid transparent'
               }}>
                 <h5 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--warning-600)' }}>
@@ -364,10 +364,10 @@ export const AphasiaLab: React.FC = () => {
               <div style={{
                 padding: '12px',
                 borderRadius: 'var(--radius-md)',
-                backgroundColor: activeType === 'anomic' ? 'var(--synapse-100)' : 'var(--bg-muted)',
+                backgroundColor: activeType === 'anomic' ? 'var(--synapse-100)' : 'var(--bg-raised)',
                 border: activeType === 'anomic' ? '1px solid var(--synapse-500)' : '1px solid transparent'
               }}>
-                <h5 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--synapse-600)' }}>
+                <h5 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--violet-400)' }}>
                   Angular Gyrus & Temporal-Parietal Junction
                 </h5>
                 <p style={{ fontSize: '12px', color: 'var(--text-body)', marginTop: '2px' }}>
@@ -377,7 +377,7 @@ export const AphasiaLab: React.FC = () => {
             </div>
           </div>
 
-          <div className="glass-card" style={{ padding: '20px', backgroundColor: 'var(--primary-50)', borderColor: 'var(--primary-100)' }}>
+          <div className="glass-card" style={{ padding: '20px', backgroundColor: 'rgba(0,245,255,0.07)', borderColor: 'rgba(0,245,255,0.1)' }}>
             <h5 style={{ fontSize: '13.5px', fontWeight: 700, color: 'var(--primary-900)', marginBottom: '6px' }}>
               Communicating with Aphasia Patients
             </h5>

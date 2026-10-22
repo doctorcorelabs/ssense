@@ -29,7 +29,7 @@ export const App: React.FC = () => {
       />
 
       {/* Main Content Area */}
-      <main style={{ flex: 1, padding: '36px 0 64px' }}>
+      <main style={{ flex: 1, padding: '32px 0 56px' }}>
         <div className="container">
           {activeTab === 'overview' && <OverviewHub setActiveTab={setActiveTab} />}
           {activeTab === 'golden-hour' && <GoldenHourClock />}

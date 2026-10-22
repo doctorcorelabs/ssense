@@ -164,7 +164,7 @@ export const VisionSimulator: React.FC = () => {
             Sensory Empathy
           </span>
         </div>
-        <h2 style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '8px' }}>
+        <h2 style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px' }}>
           Stroke Vision Deficit Simulator
         </h2>
         <p style={{ color: 'var(--text-muted)', maxWidth: '750px', fontSize: '15px' }}>
@@ -196,7 +196,7 @@ export const VisionSimulator: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span className="pulse-active"></span>
-              <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-main)' }}>
+              <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-primary)' }}>
                 {isWebcamActive ? 'Live Webcam Stream' : 'Clinical Scenario Simulation'}
               </span>
             </div>
@@ -245,7 +245,7 @@ export const VisionSimulator: React.FC = () => {
                   <div style={{
                     width: '100%',
                     height: '100%',
-                    background: 'radial-gradient(circle at center, #ffffff 0%, #e2e8f0 100%)',
+                    background: 'radial-gradient(circle at center, rgba(30, 41, 59, 0.5) 0%, rgba(10, 13, 18, 0.95) 100%)',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
@@ -258,9 +258,9 @@ export const VisionSimulator: React.FC = () => {
                       width: '260px',
                       height: '260px',
                       borderRadius: '50%',
-                      backgroundColor: '#ffffff',
-                      border: '6px solid #cbd5e1',
-                      boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
+                      backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                      border: '2px solid rgba(0, 245, 255, 0.3)',
+                      boxShadow: '0 0 30px rgba(0, 245, 255, 0.1)',
                       position: 'relative',
                       display: 'flex',
                       alignItems: 'center',
@@ -268,15 +268,15 @@ export const VisionSimulator: React.FC = () => {
                     }}>
                       <div style={{ position: 'absolute', left: '30px', top: '70px', textAlign: 'center' }}>
                         <span style={{ fontSize: '32px' }}>🥗</span>
-                        <div style={{ fontSize: '11px', fontWeight: 700, color: '#0f172a' }}>Fresh Salad</div>
+                        <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)' }}>Fresh Salad</div>
                       </div>
                       <div style={{ position: 'absolute', right: '30px', top: '70px', textAlign: 'center' }}>
                         <span style={{ fontSize: '32px' }}>🍗</span>
-                        <div style={{ fontSize: '11px', fontWeight: 700, color: '#0f172a' }}>Roast Chicken</div>
+                        <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)' }}>Roast Chicken</div>
                       </div>
                       <div style={{ position: 'absolute', bottom: '30px', textAlign: 'center' }}>
                         <span style={{ fontSize: '28px' }}>🍚</span>
-                        <div style={{ fontSize: '11px', fontWeight: 700, color: '#0f172a' }}>Steamed Rice</div>
+                        <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)' }}>Steamed Rice</div>
                       </div>
                     </div>
                     {/* Fork & Knife */}
@@ -289,20 +289,20 @@ export const VisionSimulator: React.FC = () => {
                   <div style={{
                     width: '100%',
                     height: '100%',
-                    backgroundColor: '#ffffff',
+                    backgroundColor: 'rgba(10, 13, 18, 0.95)',
                     padding: '36px 48px',
-                    color: '#0f172a',
-                    fontFamily: 'Georgia, serif',
+                    color: 'var(--text-primary)',
+                    fontFamily: 'Inter, system-ui, sans-serif',
                     lineHeight: 1.8,
-                    fontSize: '15px'
+                    fontSize: '14.5px'
                   }}>
-                    <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '20px', marginBottom: '14px', color: '#0284c7' }}>
+                    <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '20px', marginBottom: '14px', color: 'var(--cyan-neon)' }}>
                       The Recovery of Neural Function
                     </h3>
-                    <p>
+                    <p style={{ color: 'var(--text-secondary)' }}>
                       Neuroplasticity allows intact areas of the cerebral cortex to assume control of functions previously governed by damaged regions. Through repetitive motor and sensory exercises, dendrites sprout new synaptosomal junctions, bridging damaged neurovascular pathways.
                     </p>
-                    <p style={{ marginTop: '12px' }}>
+                    <p style={{ marginTop: '12px', color: 'var(--text-secondary)' }}>
                       Patients who undergo early mobilization within structured multi-disciplinary stroke units demonstrate significantly superior functional scores on the Modified Rankin Scale at 90 days.
                     </p>
                   </div>
@@ -312,7 +312,7 @@ export const VisionSimulator: React.FC = () => {
                   <div style={{
                     width: '100%',
                     height: '100%',
-                    background: 'linear-gradient(135deg, #e2e8f0 0%, #94a3b8 100%)',
+                    background: 'radial-gradient(circle at center, rgba(30, 41, 59, 0.4) 0%, rgba(5, 7, 9, 0.95) 100%)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-around',
@@ -321,15 +321,15 @@ export const VisionSimulator: React.FC = () => {
                   }}>
                     <div style={{ textAlign: 'center' }}>
                       <span>🚪</span>
-                      <p style={{ fontSize: '12px', fontWeight: 600, color: '#0f172a' }}>Open Doorway</p>
+                      <p style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>Open Doorway</p>
                     </div>
                     <div style={{ textAlign: 'center' }}>
                       <span>🪑</span>
-                      <p style={{ fontSize: '12px', fontWeight: 600, color: '#0f172a' }}>Chair Obstacle</p>
+                      <p style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>Chair Obstacle</p>
                     </div>
                     <div style={{ textAlign: 'center' }}>
                       <span>🛋️</span>
-                      <p style={{ fontSize: '12px', fontWeight: 600, color: '#0f172a' }}>Sofa</p>
+                      <p style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>Sofa</p>
                     </div>
                   </div>
                 )}
@@ -434,12 +434,12 @@ export const VisionSimulator: React.FC = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div className="glass-card" style={{ padding: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-              <Info size={18} color="var(--primary-600)" />
+              <Info size={18} color="var(--cyan-400)" />
               <h3 style={{ fontSize: '16px', fontWeight: 700 }}>
                 {deficits[selectedDeficit].title}
               </h3>
             </div>
-            <p style={{ fontSize: '13.5px', color: 'var(--text-main)', fontWeight: 600, marginBottom: '12px' }}>
+            <p style={{ fontSize: '13.5px', color: 'var(--text-primary)', fontWeight: 600, marginBottom: '12px' }}>
               {deficits[selectedDeficit].subtitle}
             </p>
 
@@ -447,7 +447,7 @@ export const VisionSimulator: React.FC = () => {
               <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', fontWeight: 700 }}>
                 Neurological Anatomy
               </span>
-              <p style={{ fontSize: '13px', color: 'var(--primary-700)', fontWeight: 600, marginTop: '2px' }}>
+              <p style={{ fontSize: '13px', color: 'var(--cyan-300)', fontWeight: 600, marginTop: '2px' }}>
                 {deficits[selectedDeficit].anatomy}
               </p>
             </div>
@@ -462,9 +462,9 @@ export const VisionSimulator: React.FC = () => {
             </div>
           </div>
 
-          <div className="glass-card" style={{ padding: '20px', backgroundColor: 'var(--primary-50)', borderColor: 'var(--primary-100)' }}>
+          <div className="glass-card" style={{ padding: '20px', backgroundColor: 'rgba(0,245,255,0.07)', borderColor: 'rgba(0,245,255,0.1)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-              <HelpCircle size={16} color="var(--primary-700)" />
+              <HelpCircle size={16} color="var(--cyan-300)" />
               <h4 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--primary-800)' }}>
                 Caregiver Tip for Visual Deficits
               </h4>

@@ -114,7 +114,7 @@ export const DrugInteractionGuard: React.FC = () => {
             Bleeding Hazard Checker
           </span>
         </div>
-        <h2 style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '8px' }}>
+        <h2 style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px' }}>
           Drug & Herbal Supplement Interaction Guard
         </h2>
         <p style={{ color: 'var(--text-muted)', maxWidth: '750px', fontSize: '15px' }}>
@@ -129,7 +129,7 @@ export const DrugInteractionGuard: React.FC = () => {
           <span className="badge badge-primary" style={{ marginBottom: '10px' }}>
             Column A: Prescribed Blood Thinner
           </span>
-          <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '14px' }}>
+          <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '14px' }}>
             Select Your Active Prescription:
           </h3>
 
@@ -143,13 +143,13 @@ export const DrugInteractionGuard: React.FC = () => {
                   style={{
                     padding: '12px 16px',
                     borderRadius: 'var(--radius-md)',
-                    backgroundColor: isSelected ? 'var(--primary-100)' : 'var(--bg-muted)',
-                    border: isSelected ? '1px solid var(--primary-400)' : '1px solid var(--border-light)',
+                    backgroundColor: isSelected ? 'rgba(0,245,255,0.1)' : 'var(--bg-raised)',
+                    border: isSelected ? '1px solid var(--primary-400)' : '1px solid var(--glass-border)',
                     cursor: 'pointer',
                     transition: 'all 0.15s ease'
                   }}
                 >
-                  <div style={{ fontSize: '14px', fontWeight: 700, color: isSelected ? 'var(--primary-800)' : 'var(--text-main)' }}>
+                  <div style={{ fontSize: '14px', fontWeight: 700, color: isSelected ? 'var(--cyan-neon)' : 'var(--text-primary)' }}>
                     {d.name}
                   </div>
                   <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>
@@ -166,7 +166,7 @@ export const DrugInteractionGuard: React.FC = () => {
           <span className="badge badge-warning" style={{ marginBottom: '10px' }}>
             Column B: Herbal Supplement
           </span>
-          <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '14px' }}>
+          <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '14px' }}>
             Select Supplement Being Considered:
           </h3>
 
@@ -180,13 +180,13 @@ export const DrugInteractionGuard: React.FC = () => {
                   style={{
                     padding: '12px 16px',
                     borderRadius: 'var(--radius-md)',
-                    backgroundColor: isSelected ? 'var(--warning-100)' : 'var(--bg-muted)',
-                    border: isSelected ? '1px solid var(--warning-500)' : '1px solid var(--border-light)',
+                    backgroundColor: isSelected ? 'rgba(251, 191, 36, 0.12)' : 'var(--bg-raised)',
+                    border: isSelected ? '1px solid rgba(251, 191, 36, 0.4)' : '1px solid var(--glass-border)',
                     cursor: 'pointer',
                     transition: 'all 0.15s ease'
                   }}
                 >
-                  <div style={{ fontSize: '14px', fontWeight: 700, color: isSelected ? 'var(--warning-600)' : 'var(--text-main)' }}>
+                  <div style={{ fontSize: '14px', fontWeight: 700, color: isSelected ? 'var(--amber-400)' : 'var(--text-primary)' }}>
                     {s.name}
                   </div>
                   <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>
@@ -202,13 +202,13 @@ export const DrugInteractionGuard: React.FC = () => {
       {/* Safety Diagnostic Output Panel */}
       <div className="glass-card" style={{
         padding: '32px',
-        backgroundColor: currentResult.severity === 'severe' ? 'var(--danger-50)' : 'var(--warning-50)',
-        borderColor: currentResult.severity === 'severe' ? 'var(--danger-100)' : 'var(--warning-100)'
+        backgroundColor: currentResult.severity === 'severe' ? 'rgba(255,45,85,0.07)' : 'rgba(251,191,36,0.06)',
+        borderColor: currentResult.severity === 'severe' ? 'rgba(255,45,85,0.25)' : 'rgba(251,191,36,0.25)'
       }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '16px', marginBottom: '18px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             {currentResult.severity === 'severe' ? (
-              <AlertOctagon size={32} color="var(--danger-600)" />
+              <AlertOctagon size={32} color="var(--red-400)" />
             ) : (
               <AlertTriangle size={32} color="var(--warning-600)" />
             )}
@@ -216,7 +216,7 @@ export const DrugInteractionGuard: React.FC = () => {
               <span className={`badge ${currentResult.severity === 'severe' ? 'badge-danger' : 'badge-warning'}`}>
                 {currentResult.severity === 'severe' ? 'Critical Contraindication' : 'Clinical Caution Required'}
               </span>
-              <h3 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px' }}>
+              <h3 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)', marginTop: '4px' }}>
                 {currentResult.headline}
               </h3>
             </div>
@@ -224,15 +224,15 @@ export const DrugInteractionGuard: React.FC = () => {
 
           <div style={{
             padding: '10px 20px',
-            backgroundColor: '#ffffff',
+            backgroundColor: 'var(--bg-raised)',
             borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--border-light)',
+            border: '1px solid var(--glass-border)',
             textAlign: 'center'
           }}>
             <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>
               Hazard Severity Score
             </span>
-            <div style={{ fontSize: '24px', fontWeight: 800, color: currentResult.severity === 'severe' ? 'var(--danger-500)' : 'var(--warning-500)', fontFamily: 'var(--font-mono)' }}>
+            <div style={{ fontSize: '24px', fontWeight: 800, color: currentResult.severity === 'severe' ? 'var(--red-500)' : 'var(--warning-500)', fontFamily: 'var(--font-mono)' }}>
               {currentResult.riskScore} / 10
             </div>
           </div>
@@ -249,14 +249,14 @@ export const DrugInteractionGuard: React.FC = () => {
 
         <div style={{
           padding: '16px 20px',
-          backgroundColor: '#ffffff',
+          backgroundColor: 'var(--bg-raised)',
           borderRadius: 'var(--radius-md)',
-          border: '1px solid var(--border-light)'
+          border: '1px solid var(--glass-border)'
         }}>
-          <h4 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--primary-700)', marginBottom: '4px' }}>
+          <h4 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--cyan-300)', marginBottom: '4px' }}>
             Clinical Recommendation:
           </h4>
-          <p style={{ fontSize: '13.5px', color: 'var(--text-main)', lineHeight: 1.5 }}>
+          <p style={{ fontSize: '13.5px', color: 'var(--text-primary)', lineHeight: 1.5 }}>
             {currentResult.recommendation}
           </p>
         </div>

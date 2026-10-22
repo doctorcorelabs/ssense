@@ -201,7 +201,7 @@ export const NeuroplasticityPlay: React.FC = () => {
         ctx.fill();
         ctx.stroke();
 
-        ctx.fillStyle = '#475569';
+        ctx.fillStyle = '#a8b8c8';
         ctx.font = '600 11px system-ui';
         ctx.textAlign = 'center';
         ctx.fillText(node.label, node.x, node.y - 14);
@@ -212,34 +212,34 @@ export const NeuroplasticityPlay: React.FC = () => {
       ctx.beginPath();
       ctx.arc(motorSoma.x, motorSoma.y, 16, 0, Math.PI * 2);
       ctx.fillStyle = '#0891b2';
-      ctx.strokeStyle = '#ffffff';
+      ctx.strokeStyle = '#00f5ff';
       ctx.lineWidth = 3;
       ctx.fill();
       ctx.stroke();
 
-      ctx.fillStyle = '#0f172a';
+      ctx.fillStyle = '#f0f4f8';
       ctx.font = 'bold 12px system-ui';
       ctx.textAlign = 'center';
       ctx.fillText('Motor Cortex', motorSoma.x, motorSoma.y + 32);
       ctx.font = '10px monospace';
-      ctx.fillStyle = '#0891b2';
+      ctx.fillStyle = '#00f5ff';
       ctx.fillText('(Action Command)', motorSoma.x, motorSoma.y + 45);
 
       // Target Muscle Node
       ctx.beginPath();
       ctx.arc(targetMuscle.x, targetMuscle.y, 16, 0, Math.PI * 2);
       ctx.fillStyle = recoveryPercent >= 70 ? '#10b981' : '#f59e0b';
-      ctx.strokeStyle = '#ffffff';
+      ctx.strokeStyle = recoveryPercent >= 70 ? '#00ff88' : '#fbbf24';
       ctx.lineWidth = 3;
       ctx.fill();
       ctx.stroke();
 
-      ctx.fillStyle = '#0f172a';
+      ctx.fillStyle = '#f0f4f8';
       ctx.font = 'bold 12px system-ui';
       ctx.textAlign = 'center';
       ctx.fillText('Hand Muscle', targetMuscle.x, targetMuscle.y + 32);
       ctx.font = '10px monospace';
-      ctx.fillStyle = '#10b981';
+      ctx.fillStyle = '#00ff88';
       ctx.fillText(`(${recoveryPercent}% Synced)`, targetMuscle.x, targetMuscle.y + 45);
 
       animId = requestAnimationFrame(render);
@@ -262,7 +262,7 @@ export const NeuroplasticityPlay: React.FC = () => {
           overflow: 'hidden',
           display: 'grid',
           gridTemplateColumns: 'minmax(320px, 1.25fr) minmax(280px, 0.75fr)',
-          backgroundColor: '#ffffff'
+          backgroundColor: 'var(--bg-raised)'
         }}
       >
         <div style={{ padding: '36px 36px 32px' }}>
@@ -278,7 +278,7 @@ export const NeuroplasticityPlay: React.FC = () => {
             </span>
           </div>
 
-          <h1 style={{ fontSize: '32px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '12px', letterSpacing: '-0.02em' }}>
+          <h1 style={{ fontSize: '32px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '12px', letterSpacing: '-0.02em' }}>
             Neuroplasticity & Synaptic Rewiring Lab
           </h1>
           
@@ -357,7 +357,7 @@ export const NeuroplasticityPlay: React.FC = () => {
             </span>
             <Activity size={18} color="#8b5cf6" />
           </div>
-          <div style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)', fontFamily: 'var(--font-mono)' }}>
+          <div style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
             {bdnfLevel} ng/mL
           </div>
           <span style={{ fontSize: '11.5px', color: '#6d28d9', fontWeight: 600 }}>
@@ -402,7 +402,7 @@ export const NeuroplasticityPlay: React.FC = () => {
             </span>
             <Zap size={18} color="#f59e0b" />
           </div>
-          <div style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)', fontFamily: 'var(--font-mono)' }}>
+          <div style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
             {rehabReps} / {maxReps}
           </div>
           <span style={{ fontSize: '11.5px', color: '#b45309', fontWeight: 600 }}>
@@ -415,7 +415,7 @@ export const NeuroplasticityPlay: React.FC = () => {
       <div className="glass-card" style={{ padding: '28px' }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '16px', marginBottom: '20px' }}>
           <div>
-            <h3 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-main)' }}>
+            <h3 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)' }}>
               Interactive Peri-Infarct Axonal Sprouting Stage
             </h3>
             <p style={{ fontSize: '13.5px', color: 'var(--text-muted)' }}>
@@ -448,9 +448,9 @@ export const NeuroplasticityPlay: React.FC = () => {
         {/* Canvas Display */}
         <div style={{
           width: '100%',
-          backgroundColor: '#ffffff',
+          backgroundColor: 'var(--bg-raised)',
           borderRadius: 'var(--radius-lg)',
-          border: '1px solid var(--border-light)',
+          border: '1px solid var(--glass-border)',
           boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.04)',
           overflow: 'hidden',
           position: 'relative'
@@ -467,11 +467,11 @@ export const NeuroplasticityPlay: React.FC = () => {
         }}>
           <div style={{
             padding: '16px',
-            backgroundColor: 'var(--bg-muted)',
+            backgroundColor: 'var(--bg-raised)',
             borderRadius: 'var(--radius-md)',
             borderLeft: '3px solid #8b5cf6'
           }}>
-            <h5 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>
+            <h5 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
               1. High-Dose Repetitive Practice
             </h5>
             <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
@@ -481,11 +481,11 @@ export const NeuroplasticityPlay: React.FC = () => {
 
           <div style={{
             padding: '16px',
-            backgroundColor: 'var(--bg-muted)',
+            backgroundColor: 'var(--bg-raised)',
             borderRadius: 'var(--radius-md)',
             borderLeft: '3px solid #0891b2'
           }}>
-            <h5 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>
+            <h5 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
               2. Salience & Task Meaningfulness
             </h5>
             <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
@@ -495,11 +495,11 @@ export const NeuroplasticityPlay: React.FC = () => {
 
           <div style={{
             padding: '16px',
-            backgroundColor: 'var(--bg-muted)',
+            backgroundColor: 'var(--bg-raised)',
             borderRadius: 'var(--radius-md)',
             borderLeft: '3px solid #10b981'
           }}>
-            <h5 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>
+            <h5 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
               3. Overcoming "Learned Non-Use"
             </h5>
             <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', lineHeight: 1.5 }}>

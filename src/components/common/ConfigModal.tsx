@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Key, Server, CheckCircle2, ShieldCheck, Sparkles, Cpu } from 'lucide-react';
+import { X, Key, Server, CheckCircle2, ShieldCheck, Sparkles, Cpu, Globe } from 'lucide-react';
 import { DEFAULT_AI_MODEL, DEFAULT_API_KEY } from '../../services/openRouterService';
 
 interface ConfigModalProps {
@@ -8,7 +8,7 @@ interface ConfigModalProps {
 }
 
 export const ConfigModal: React.FC<ConfigModalProps> = ({ isOpen, onClose }) => {
-  const [workerUrl, setWorkerUrl] = useState(() => localStorage.getItem('strokesense_worker_url') || 'http://127.0.0.1:8787');
+  const [workerUrl, setWorkerUrl] = useState(() => localStorage.getItem('strokesense_worker_url') || 'https://strokesense-proxy.daivanfebrijuansetiya.workers.dev');
   const [apiKey, setApiKey] = useState(() => localStorage.getItem('strokesense_openrouter_key') || DEFAULT_API_KEY);
   const [model, setModel] = useState(() => localStorage.getItem('strokesense_model') || DEFAULT_AI_MODEL);
   const [saved, setSaved] = useState(false);
@@ -25,7 +25,7 @@ export const ConfigModal: React.FC<ConfigModalProps> = ({ isOpen, onClose }) => 
     setTimeout(() => {
       setSaved(false);
       onClose();
-    }, 900);
+    }, 800);
   };
 
   const handleTestConnection = async () => {
@@ -42,13 +42,13 @@ export const ConfigModal: React.FC<ConfigModalProps> = ({ isOpen, onClose }) => 
         },
         body: JSON.stringify({
           model: model.trim() || DEFAULT_AI_MODEL,
-          messages: [{ role: 'user', content: 'Say "Connection Successful!" in 2 words.' }]
+          messages: [{ role: 'user', content: 'Say "Connection Verified" in 2 words.' }]
         })
       });
 
       if (!res.ok) {
         const errText = await res.text();
-        setTestResult(`Error ${res.status}: ${errText.slice(0, 80)}`);
+        setTestResult(`Error ${res.status}: ${errText.slice(0, 70)}`);
       } else {
         const data = await res.json();
         const reply = data.choices?.[0]?.message?.content || 'Verified!';
@@ -65,23 +65,27 @@ export const ConfigModal: React.FC<ConfigModalProps> = ({ isOpen, onClose }) => 
     <div style={{
       position: 'fixed',
       inset: 0,
-      backgroundColor: 'rgba(15, 23, 42, 0.4)',
-      backdropFilter: 'blur(6px)',
+      backgroundColor: 'rgba(0, 0, 0, 0.75)',
+      backdropFilter: 'blur(12px)',
+      WebkitBackdropFilter: 'blur(12px)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       zIndex: 1000,
-      padding: '16px'
+      padding: '20px'
     }}>
       <div className="glass-card" style={{
         maxWidth: '540px',
         width: '100%',
-        padding: '28px',
+        padding: '32px',
         borderRadius: 'var(--radius-xl)',
-        background: '#ffffff',
-        boxShadow: 'var(--shadow-xl)',
-        position: 'relative'
+        background: 'rgba(10, 13, 18, 0.92)',
+        border: '1px solid rgba(0, 245, 255, 0.22)',
+        boxShadow: '0 0 50px rgba(0, 245, 255, 0.08), 0 24px 60px rgba(0, 0, 0, 0.8)',
+        position: 'relative',
+        color: 'var(--text-primary)'
       }}>
+        {/* Close Button */}
         <button 
           onClick={onClose}
           style={{
@@ -89,52 +93,68 @@ export const ConfigModal: React.FC<ConfigModalProps> = ({ isOpen, onClose }) => 
             top: '20px',
             right: '20px',
             color: 'var(--text-muted)',
-            padding: '4px'
+            padding: '6px',
+            borderRadius: 'var(--radius-sm)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'color 0.2s ease'
           }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
+          onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
         >
           <X size={20} />
         </button>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+        {/* Modal Header */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '18px' }}>
           <div style={{
-            width: '42px',
-            height: '42px',
+            width: '44px',
+            height: '44px',
             borderRadius: '12px',
-            backgroundColor: 'var(--primary-100)',
-            color: 'var(--primary-700)',
+            backgroundColor: 'rgba(0, 245, 255, 0.12)',
+            border: '1px solid rgba(0, 245, 255, 0.3)',
+            color: 'var(--cyan-neon)',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            boxShadow: '0 0 16px rgba(0, 245, 255, 0.2)'
           }}>
             <Server size={22} />
           </div>
           <div>
-            <h3 style={{ fontSize: '18px', fontWeight: 800 }}>AI & Cloudflare Connectivity</h3>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Configured with OpenRouter & Cloudflare Worker</p>
+            <h3 style={{ fontSize: '19px', fontWeight: 800, fontFamily: 'var(--font-display)', letterSpacing: '-0.02em' }}>
+              Edge Telemetry & AI Config
+            </h3>
+            <p style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>
+              OpenRouter Model & Cloudflare Worker Configuration
+            </p>
           </div>
         </div>
 
+        {/* Status Pill */}
         <div style={{
-          backgroundColor: 'var(--primary-50)',
-          border: '1px solid var(--primary-100)',
+          backgroundColor: 'rgba(0, 245, 255, 0.05)',
+          border: '1px solid rgba(0, 245, 255, 0.15)',
           borderRadius: 'var(--radius-md)',
           padding: '12px 16px',
-          margin: '16px 0 20px',
+          marginBottom: '22px',
           display: 'flex',
-          gap: '10px',
+          gap: '12px',
           alignItems: 'center'
         }}>
-          <ShieldCheck size={18} color="var(--primary-600)" style={{ flexShrink: 0 }} />
-          <p style={{ fontSize: '12.5px', color: 'var(--primary-900)', lineHeight: 1.4 }}>
-            <strong>Active AI Model:</strong> <code>{model}</code> is configured and ready for live neurology streaming.
+          <ShieldCheck size={18} color="var(--cyan-neon)" style={{ flexShrink: 0 }} />
+          <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+            <strong style={{ color: 'var(--cyan-neon)' }}>Active Model:</strong> <code>{model}</code> streaming via Cloudflare Edge Worker.
           </p>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          {/* Active Model Selector */}
+        {/* Form Fields */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* Target Model */}
           <div>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 600, color: 'var(--text-main)', marginBottom: '6px' }}>
-              <Cpu size={14} color="var(--primary-600)" />
+            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
+              <Cpu size={14} color="var(--cyan-neon)" />
               Target AI Model
             </label>
             <input
@@ -144,12 +164,13 @@ export const ConfigModal: React.FC<ConfigModalProps> = ({ isOpen, onClose }) => 
               placeholder="openai/gpt-6-luna"
               style={{
                 width: '100%',
-                padding: '10px 14px',
+                padding: '11px 14px',
                 borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--border-light)',
-                fontSize: '13.5px',
+                border: '1px solid var(--glass-border)',
+                fontSize: '13px',
                 outline: 'none',
-                backgroundColor: 'var(--bg-muted)',
+                backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                color: 'var(--text-primary)',
                 fontFamily: 'var(--font-mono)'
               }}
             />
@@ -157,33 +178,37 @@ export const ConfigModal: React.FC<ConfigModalProps> = ({ isOpen, onClose }) => 
 
           {/* Cloudflare Worker URL */}
           <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-main)', marginBottom: '6px' }}>
-              Cloudflare Worker Proxy Endpoint
+            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
+              <Globe size={14} color="var(--green-neon)" />
+              Cloudflare Worker Endpoint
             </label>
             <input
               type="url"
-              placeholder="http://127.0.0.1:8787 or https://strokesense-proxy.workers.dev"
+              placeholder="https://strokesense-proxy.daivanfebrijuansetiya.workers.dev"
               value={workerUrl}
               onChange={(e) => setWorkerUrl(e.target.value)}
               style={{
                 width: '100%',
-                padding: '10px 14px',
+                padding: '11px 14px',
                 borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--border-light)',
-                fontSize: '13.5px',
+                border: '1px solid var(--glass-border)',
+                fontSize: '13px',
                 outline: 'none',
-                backgroundColor: 'var(--bg-muted)'
+                backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                color: 'var(--text-primary)',
+                fontFamily: 'var(--font-mono)'
               }}
             />
             <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
-              Your Cloudflare Edge Proxy with open CORS (`*`).
+              Deployed edge proxy with CORS * and streaming buffer.
             </span>
           </div>
 
-          {/* Direct OpenRouter API Key */}
+          {/* OpenRouter API Key */}
           <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-main)', marginBottom: '6px' }}>
-              OpenRouter API Key
+            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
+              <Key size={14} color="var(--violet-neon)" />
+              Direct OpenRouter API Key (Optional Override)
             </label>
             <div style={{ position: 'relative' }}>
               <input
@@ -193,38 +218,45 @@ export const ConfigModal: React.FC<ConfigModalProps> = ({ isOpen, onClose }) => 
                 onChange={(e) => setApiKey(e.target.value)}
                 style={{
                   width: '100%',
-                  padding: '10px 14px 10px 38px',
+                  padding: '11px 14px 11px 38px',
                   borderRadius: 'var(--radius-md)',
-                  border: '1px solid var(--border-light)',
-                  fontSize: '13.5px',
+                  border: '1px solid var(--glass-border)',
+                  fontSize: '13px',
                   outline: 'none',
-                  backgroundColor: 'var(--bg-muted)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                  color: 'var(--text-primary)',
                   fontFamily: 'var(--font-mono)'
                 }}
               />
-              <Key size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '12px' }} />
+              <Key size={15} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '13px' }} />
             </div>
           </div>
 
           {/* Test Connection Button & Result */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', flexWrap: 'wrap', gap: '8px' }}>
             <button
               onClick={handleTestConnection}
               className="btn btn-secondary btn-sm"
               disabled={testing}
             >
-              <Sparkles size={14} color="var(--primary-600)" />
-              {testing ? 'Testing...' : 'Test Model Connection'}
+              <Sparkles size={14} color="var(--cyan-neon)" />
+              {testing ? 'Probing Edge...' : 'Test Model Connection'}
             </button>
 
             {testResult && (
-              <span style={{ fontSize: '12px', fontWeight: 600, color: testResult.includes('Active') ? 'var(--success-600)' : 'var(--danger-500)' }}>
+              <span style={{
+                fontSize: '11.5px',
+                fontWeight: 600,
+                color: testResult.includes('Active') ? 'var(--green-neon)' : 'var(--red-neon)',
+                fontFamily: 'var(--font-mono)'
+              }}>
                 {testResult}
               </span>
             )}
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+          {/* Action Buttons */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '12px' }}>
             <button className="btn btn-secondary" onClick={onClose}>
               Cancel
             </button>

@@ -69,7 +69,6 @@ export const GoldenHourClock: React.FC = () => {
           overflow: 'hidden',
           display: 'grid',
           gridTemplateColumns: 'minmax(320px, 1.2fr) minmax(280px, 0.8fr)',
-          backgroundColor: '#ffffff'
         }}
       >
         <div style={{ padding: '36px 36px 32px' }}>
@@ -85,7 +84,7 @@ export const GoldenHourClock: React.FC = () => {
             </span>
           </div>
 
-          <h1 style={{ fontSize: '32px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '12px', letterSpacing: '-0.02em' }}>
+          <h1 style={{ fontSize: '32px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '12px', letterSpacing: '-0.02em' }}>
             Golden Hour & Penumbra Survival Console
           </h1>
           
@@ -147,10 +146,10 @@ export const GoldenHourClock: React.FC = () => {
       <div className="glass-card" style={{ padding: '32px' }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '16px', marginBottom: '18px' }}>
           <div>
-            <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--primary-700)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--cyan-300)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
               Interactive Elapsed Time Controller
             </span>
-            <h3 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-main)', marginTop: '2px' }}>
+            <h3 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
               Time Elapsed from Last Known Well (LKW)
             </h3>
           </div>
@@ -160,11 +159,11 @@ export const GoldenHourClock: React.FC = () => {
             alignItems: 'baseline',
             gap: '8px',
             padding: '10px 20px',
-            backgroundColor: 'var(--bg-muted)',
+            backgroundColor: 'var(--bg-raised)',
             borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--border-light)'
+            border: '1px solid var(--glass-border)'
           }}>
-            <span style={{ fontSize: '28px', fontWeight: 800, color: 'var(--primary-700)', fontFamily: 'var(--font-mono)' }}>
+            <span style={{ fontSize: '28px', fontWeight: 800, color: 'var(--cyan-300)', fontFamily: 'var(--font-mono)' }}>
               {Math.floor(minutes / 60)}h {minutes % 60}m
             </span>
             <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-muted)' }}>
@@ -234,7 +233,7 @@ export const GoldenHourClock: React.FC = () => {
             </span>
             <Zap size={18} color="#ef4444" />
           </div>
-          <div style={{ fontSize: '30px', fontWeight: 800, color: 'var(--text-main)', fontFamily: 'var(--font-mono)' }}>
+          <div style={{ fontSize: '30px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
             {(neuronsLost / 1_000_000).toFixed(1)} M
           </div>
           <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
@@ -260,7 +259,7 @@ export const GoldenHourClock: React.FC = () => {
             </span>
             <Activity size={18} color="#8b5cf6" />
           </div>
-          <div style={{ fontSize: '30px', fontWeight: 800, color: 'var(--text-main)', fontFamily: 'var(--font-mono)' }}>
+          <div style={{ fontSize: '30px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
             {(synapsesLost / 1_000_000_000).toFixed(1)} Billion
           </div>
           <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
@@ -286,7 +285,7 @@ export const GoldenHourClock: React.FC = () => {
             </span>
             <Clock size={18} color="#0891b2" />
           </div>
-          <div style={{ fontSize: '30px', fontWeight: 800, color: 'var(--text-main)', fontFamily: 'var(--font-mono)' }}>
+          <div style={{ fontSize: '30px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
             {fiberKm} km
           </div>
           <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
@@ -340,7 +339,7 @@ export const GoldenHourClock: React.FC = () => {
               <span className="badge badge-primary">RAPID CTP Perfusion Software Simulation</span>
               <span className="badge badge-danger">LVO MCA Territory Mismatch</span>
             </div>
-            <h3 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-main)' }}>
+            <h3 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-primary)' }}>
               Axial CT Perfusion Mismatch Map & Tissue Viability
             </h3>
             <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginTop: '2px' }}>
@@ -537,30 +536,30 @@ export const GoldenHourClock: React.FC = () => {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <div style={{
                 padding: '12px 16px',
-                backgroundColor: 'var(--bg-muted)',
+                backgroundColor: 'var(--bg-raised)',
                 borderRadius: 'var(--radius-md)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '10px'
               }}>
-                <Stethoscope size={18} color="var(--primary-600)" />
+                <Stethoscope size={18} color="var(--cyan-400)" />
                 <div>
-                  <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-main)' }}>NIHSS Scoring</div>
+                  <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)' }}>NIHSS Scoring</div>
                   <div style={{ fontSize: '11px', color: 'var(--text-subtle)' }}>Quantifies neurologic deficit (0-42)</div>
                 </div>
               </div>
 
               <div style={{
                 padding: '12px 16px',
-                backgroundColor: 'var(--bg-muted)',
+                backgroundColor: 'var(--bg-raised)',
                 borderRadius: 'var(--radius-md)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '10px'
               }}>
-                <Syringe size={18} color="var(--primary-600)" />
+                <Syringe size={18} color="var(--cyan-400)" />
                 <div>
-                  <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-main)' }}>Door-to-Needle</div>
+                  <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)' }}>Door-to-Needle</div>
                   <div style={{ fontSize: '11px', color: 'var(--text-subtle)' }}>Target: &le; 45 minutes of arrival</div>
                 </div>
               </div>
