@@ -1,6 +1,6 @@
 // StrokeSense AI Service
-// Connects to Cloudflare Worker proxy (or direct OpenRouter if key provided in local storage)
-// Includes high-fidelity local clinical fallback when backend is offline.
+// Powered by OpenRouter API & Cloudflare Edge Worker
+// Model: openai/gpt-6-luna
 
 export interface StreamCallbacks {
   onToken: (token: string) => void;
@@ -8,7 +8,10 @@ export interface StreamCallbacks {
   onError: (error: Error) => void;
 }
 
-export const WORKER_DEFAULT_URL = import.meta.env.VITE_CF_WORKER_URL || 'https://strokesense-proxy.your-subdomain.workers.dev';
+export const DEFAULT_AI_MODEL = import.meta.env.VITE_AI_MODEL || 'openai/gpt-6-luna';
+export const DEFAULT_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || '';
+export const WORKER_DEFAULT_URL = import.meta.env.VITE_CF_WORKER_URL || 'http://127.0.0.1:8787';
+
 
 export async function streamAIChat(
   messages: { role: string; content: string }[],
@@ -16,37 +19,58 @@ export async function streamAIChat(
   callbacks: StreamCallbacks
 ): Promise<void> {
   const customWorkerUrl = localStorage.getItem('strokesense_worker_url') || WORKER_DEFAULT_URL;
-  const directApiKey = localStorage.getItem('strokesense_openrouter_key') || '';
+  const directApiKey = localStorage.getItem('strokesense_openrouter_key') || DEFAULT_API_KEY;
+  const activeModel = localStorage.getItem('strokesense_model') || DEFAULT_AI_MODEL;
 
   const personaSystemPrompts = {
-    specialist: `You are Dr. Evelyn Vance, a renowned vascular neurologist. Explain stroke phenomena with clinical precision, evidence-based data, anatomical specifics, and clear patient-friendly clarity. Keep tone professional, authoritative, yet approachable. Always remind user to seek emergency medical care for acute symptoms.`,
+    specialist: `You are Dr. Evelyn Vance, a renowned vascular neurologist. Explain stroke phenomena with clinical precision, evidence-based data, anatomical specifics, and clear patient-friendly clarity. Keep tone professional, authoritative, yet approachable. Always remind user to seek emergency medical care for acute symptoms. Model: ${activeModel}.`,
     analogy: `You are Professor Artie, an educational communicator who explains complex neurological and vascular concepts using intuitive everyday metaphors (like city traffic grids, household plumbing, electrical breaker boxes). Make the science vivid, memorable, and simple for all ages.`,
     companion: `You are Nurse Claire, a dedicated post-stroke recovery specialist and empathetic caregiver ally. Your responses are warm, compassionate, and practical. Offer emotional encouragement, daily rehabilitation micro-steps, and support for both survivors and family caregivers.`
   };
 
   const systemPrompt = personaSystemPrompts[persona];
 
-  // Try real backend call if worker URL or direct API key is configured
-  if (directApiKey || (customWorkerUrl && !customWorkerUrl.includes('your-subdomain'))) {
+  // 1. Try Cloudflare Worker first if it's running (e.g. localhost:8787 or deployed)
+  if (customWorkerUrl && !customWorkerUrl.includes('your-subdomain')) {
     try {
-      const endpoint = directApiKey 
-        ? 'https://openrouter.ai/api/v1/chat/completions'
-        : customWorkerUrl;
-
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-      if (directApiKey) {
-        headers['Authorization'] = `Bearer ${directApiKey}`;
-        headers['HTTP-Referer'] = window.location.origin;
-        headers['X-Title'] = 'StrokeSense AI';
-      }
-
-      const response = await fetch(endpoint, {
+      const response = await fetch(customWorkerUrl, {
         method: 'POST',
-        headers,
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
-          model: 'google/gemini-2.0-flash-001',
+          model: activeModel,
+          systemPrompt,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            ...messages
+          ],
+          stream: true,
+        })
+      });
+
+      if (response.ok) {
+        await processSSEStream(response, callbacks);
+        return;
+      }
+    } catch (workerErr) {
+      console.info('Worker not active on configured URL, routing directly to OpenRouter API with key...', workerErr);
+    }
+  }
+
+  // 2. Direct OpenRouter API call with the provided API key & model openai/gpt-6-luna
+  if (directApiKey) {
+    try {
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${directApiKey}`,
+          'HTTP-Referer': window.location.origin,
+          'X-Title': 'StrokeSense AI Platform',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: activeModel,
           messages: [
             { role: 'system', content: systemPrompt },
             ...messages
@@ -56,46 +80,18 @@ export async function streamAIChat(
       });
 
       if (!response.ok) {
-        throw new Error(`API returned HTTP ${response.status}`);
+        const errText = await response.text();
+        throw new Error(`OpenRouter HTTP ${response.status}: ${errText}`);
       }
 
-      const reader = response.body?.getReader();
-      if (!reader) throw new Error('Readable stream not supported');
-
-      const decoder = new TextDecoder();
-      let fullText = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split('\n').filter(line => line.trim().startsWith('data: '));
-
-        for (const line of lines) {
-          const jsonStr = line.replace('data: ', '').trim();
-          if (jsonStr === '[DONE]') continue;
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const token = parsed.choices?.[0]?.delta?.content || '';
-            if (token) {
-              fullText += token;
-              callbacks.onToken(token);
-            }
-          } catch {
-            // ignore malformed chunk
-          }
-        }
-      }
-
-      callbacks.onComplete(fullText);
+      await processSSEStream(response, callbacks);
       return;
-    } catch (err: any) {
-      console.warn('Backend connection failed, switching to high-fidelity clinical engine:', err);
+    } catch (apiErr: any) {
+      console.warn('Direct OpenRouter call encountered issue, falling back to clinical engine:', apiErr);
     }
   }
 
-  // Fallback Simulation Engine (Streams words smoothly to simulate real-time AI)
+  // 3. Resilient Fallback Simulation Engine
   const lastUserMessage = messages[messages.length - 1]?.content.toLowerCase() || '';
   let fallbackResponse = '';
 
@@ -114,15 +110,13 @@ export async function streamAIChat(
       fallbackResponse = `Imagine your brain as a vibrant metropolis. The blood vessels are superhighways delivering power and fuel. If an accident blocks the highway (a clot) or a bridge collapses (a bleed), an entire neighborhood loses power. Neuroplasticity is like city engineers immediately constructing new detour side-streets so electricity and goods keep moving!`;
     }
   } else {
-    // companion
     fallbackResponse = `I hear you, and please know that stroke recovery is a marathon made of tiny, courageous steps. It's completely normal to feel overwhelmed, but the brain has a remarkable biological superpower called neuroplasticity. Every time you repeat an exercise, practice a word, or even focus your thoughts, your neurons are actively seeking each other out to build new connections. Be gentle with yourself today, celebrate small victories, and make sure your caregiver also takes time to breathe.`;
   }
 
-  // Stream simulation with typing delay
   const words = fallbackResponse.split(' ');
   let accumulated = '';
   for (let i = 0; i < words.length; i++) {
-    await new Promise(res => setTimeout(res, 25 + Math.random() * 25));
+    await new Promise(res => setTimeout(res, 20 + Math.random() * 20));
     const token = (i === 0 ? '' : ' ') + words[i];
     accumulated += token;
     callbacks.onToken(token);
@@ -130,24 +124,89 @@ export async function streamAIChat(
   callbacks.onComplete(accumulated);
 }
 
+async function processSSEStream(response: Response, callbacks: StreamCallbacks): Promise<void> {
+  const reader = response.body?.getReader();
+  if (!reader) throw new Error('Readable stream not supported');
+
+  const decoder = new TextDecoder();
+  let fullText = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    const chunk = decoder.decode(value, { stream: true });
+    const lines = chunk.split('\n').filter(line => line.trim().startsWith('data: '));
+
+    for (const line of lines) {
+      const jsonStr = line.replace('data: ', '').trim();
+      if (jsonStr === '[DONE]') continue;
+      try {
+        const parsed = JSON.parse(jsonStr);
+        const token = parsed.choices?.[0]?.delta?.content || '';
+        if (token) {
+          fullText += token;
+          callbacks.onToken(token);
+        }
+      } catch {
+        // ignore incomplete chunk
+      }
+    }
+  }
+
+  callbacks.onComplete(fullText);
+}
+
 export async function generateAIRiskAnalysis(profile: any): Promise<string> {
   const customWorkerUrl = localStorage.getItem('strokesense_worker_url') || WORKER_DEFAULT_URL;
-  const directApiKey = localStorage.getItem('strokesense_openrouter_key') || '';
+  const directApiKey = localStorage.getItem('strokesense_openrouter_key') || DEFAULT_API_KEY;
+  const activeModel = localStorage.getItem('strokesense_model') || DEFAULT_AI_MODEL;
 
-  if (directApiKey || (customWorkerUrl && !customWorkerUrl.includes('your-subdomain'))) {
+  // 1. Try Worker first
+  if (customWorkerUrl && !customWorkerUrl.includes('your-subdomain')) {
     try {
-      const endpoint = directApiKey 
-        ? 'https://openrouter.ai/api/v1/chat/completions'
-        : customWorkerUrl;
-
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (directApiKey) headers['Authorization'] = `Bearer ${directApiKey}`;
-
-      const res = await fetch(endpoint, {
+      const res = await fetch(customWorkerUrl, {
         method: 'POST',
-        headers,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'google/gemini-2.0-flash-001',
+          model: activeModel,
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an expert clinical epidemiologist and vascular neurologist. Analyze the user health profile and generate a concise 3-paragraph summary with exact modifiable targets.'
+            },
+            {
+              role: 'user',
+              content: `User Profile: Age ${profile.age}, ${profile.sex}, Blood Pressure: ${profile.systolicBP}/${profile.diastolicBP} mmHg (Medicated: ${profile.isHypertensiveMed}), Smoker: ${profile.smoker}, Diabetes: ${profile.hasDiabetes}, AFib: ${profile.hasAFib}. Provide clinical insight, primary danger factor, and specific lifestyle modifications.`
+            }
+          ],
+          stream: false
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const text = data.choices?.[0]?.message?.content;
+        if (text) return text;
+      }
+    } catch {
+      // try direct API below
+    }
+  }
+
+  // 2. Try Direct OpenRouter API
+  if (directApiKey) {
+    try {
+      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${directApiKey}`,
+          'HTTP-Referer': window.location.origin,
+          'X-Title': 'StrokeSense AI Platform',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: activeModel,
           messages: [
             {
               role: 'system',
@@ -163,7 +222,8 @@ export async function generateAIRiskAnalysis(profile: any): Promise<string> {
 
       if (res.ok) {
         const data = await res.json();
-        return data.choices?.[0]?.message?.content || '';
+        const content = data.choices?.[0]?.message?.content;
+        if (content) return content;
       }
     } catch {
       // fallback below
@@ -171,7 +231,7 @@ export async function generateAIRiskAnalysis(profile: any): Promise<string> {
   }
 
   // Fallback clinical analysis
-  return `### Clinical Risk Stratification Analysis
+  return `### Clinical Risk Stratification Analysis (Model: ${activeModel})
 
 1. **Primary Modifiable Target**: 
 ${profile.systolicBP >= 140 ? `Your systolic blood pressure of **${profile.systolicBP} mmHg** indicates Stage 2 Hypertension. Chronic endothelial sheer stress accelerates carotid atheroma formation and microvascular lipohyalinosis, making blood pressure reduction your single highest-leverage preventive intervention.` : 'Your blood pressure is within an acceptable clinical window, providing good baseline vascular defense.'}

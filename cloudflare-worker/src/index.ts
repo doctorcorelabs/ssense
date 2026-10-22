@@ -1,11 +1,15 @@
 /**
  * StrokeSense Cloudflare Edge Proxy
  * Bridges Netlify Frontend to OpenRouter AI with open CORS and SSE streaming
+ * Configured with model: openai/gpt-6-luna
  */
 
 export interface Env {
   OPENROUTER_API_KEY: string;
+  DEFAULT_MODEL?: string;
 }
+
+const DEFAULT_MODEL = 'openai/gpt-6-luna';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*', // Open CORS as specified
@@ -31,12 +35,12 @@ export default {
     }
 
     try {
-      const body = await request.json() as any;
+      const body = (await request.json()) as any;
       const {
         messages = [],
-        model = 'google/gemini-2.0-flash-001',
+        model = env.DEFAULT_MODEL || DEFAULT_MODEL,
         temperature = 0.7,
-        max_tokens = 1000,
+        max_tokens = 1500,
         stream = true,
       } = body;
 
@@ -44,13 +48,14 @@ export default {
       if (!apiKey) {
         return new Response(
           JSON.stringify({
-            error: 'Missing OPENROUTER_API_KEY secret in Cloudflare Worker environment.',
+            error: 'Missing OPENROUTER_API_KEY secret in Cloudflare Worker environment. Please run `npx wrangler secret put OPENROUTER_API_KEY` or configure .dev.vars.',
           }),
           { status: 500, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
         );
       }
 
-      // Forward to OpenRouter
+
+      // Forward to OpenRouter API
       const openRouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
