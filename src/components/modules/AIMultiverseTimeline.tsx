@@ -25,8 +25,8 @@ export const AIMultiverseTimeline: React.FC = () => {
     {
       timeLabel: '07:15 AM (15 Mins Post-Onset)',
       hourFromOnset: 0.25,
-      alphaTitle: 'The Fatal Delay: "Hanya Masuk Angin"',
-      alphaEvent: 'Family assumes Pak Hendra is merely exhausted from work. They prepare sweet hot tea and perform traditional coin scraping (kerokan).',
+      alphaTitle: 'The Fatal Delay: "Just Passing Fatigue"',
+      alphaEvent: 'Family assumes patient Arthur (58M) is merely overworked and exhausted. They prepare sweet hot tea and wait for rest to resolve weakness, missing early stroke onset.',
       alphaCoreVol: 12,
       alphaNeuronsLost: 28,
       betaTitle: 'BE-FAST Protocol Activated',
@@ -38,7 +38,7 @@ export const AIMultiverseTimeline: React.FC = () => {
       timeLabel: '08:00 AM (1 Hour Post-Onset)',
       hourFromOnset: 1.0,
       alphaTitle: 'Symptoms Escalating Unchecked',
-      alphaEvent: 'Pak Hendra vomits and slumps to the floor. Speech becomes slurred and confused. Family waits hoping sleep will cure it.',
+      alphaEvent: 'Patient vomits and slumps to the floor. Speech becomes dysarthric and globally confused. Family hesitates, hoping sleep will restore baseline function.',
       alphaCoreVol: 34,
       alphaNeuronsLost: 114,
       betaTitle: 'Door-to-Needle in Angio Suite',
@@ -105,7 +105,7 @@ export const AIMultiverseTimeline: React.FC = () => {
               The Multiverse of Stroke: The Cost of a Minute
             </h2>
             <p style={{ color: 'var(--text-muted)', maxWidth: '840px', fontSize: '14.5px', lineHeight: 1.55 }}>
-              Witness two parallel realities for the exact same patient (Pak Hendra, 58 tahun, Left MCA Occlusion). One timeline experiences family denial and delayed hospital arrival; the other activates the Golden Hour protocol within minutes.
+              Witness two parallel realities for the exact same patient (Arthur Pendelton, 58 yo male, Left M1 MCA Occlusion). One timeline experiences family denial and delayed hospital arrival; the other activates the Golden Hour protocol within minutes.
             </p>
           </div>
         </div>
@@ -185,7 +185,7 @@ export const AIMultiverseTimeline: React.FC = () => {
             fontSize: '12.5px',
             color: '#881337'
           }}>
-            <strong>Neurological Prognosis:</strong> Severe dense hemiplegia, complete aphasia, mRS 5 disability. Lifetime care cost estimate: ~Rp 850.000.000.
+            <strong>Neurological Prognosis:</strong> Severe dense hemiplegia, complete aphasia, mRS 5 disability. Lifetime care cost estimate: ~$650,000 (continuous assisted nursing).
           </div>
         </div>
 

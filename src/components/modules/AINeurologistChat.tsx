@@ -708,32 +708,32 @@ ${text}
           scrollbarWidth: 'none'
         }}>
           <button
-            onClick={() => handleSendMessage('Pasien tensi 172/98 mmHg onset 80 menit lalu, apakah memenuhi kriteria pemberian trombolisis IV Alteplase/Tenecteplase?')}
+            onClick={() => handleSendMessage('Patient presents with BP 172/98 mmHg and symptom onset 80 minutes ago. Does this meet criteria for IV Alteplase / Tenecteplase thrombolysis?')}
             className="btn btn-sm btn-secondary"
             style={{ fontSize: '10.5px', padding: '3px 8px', whiteSpace: 'nowrap', flexShrink: 0 }}
           >
-            🚨 Tensi 172/98 Onset 80m tPA?
+            🚨 BP 172/98 Onset 80m: tPA?
           </button>
           <button
-            onClick={() => handleSendMessage('Apa perbedaan klinis utama stroke oklusi MCA hemisfer dominan kiri vs non-dominan kanan?')}
+            onClick={() => handleSendMessage('What are the primary clinical deficits distinguishing dominant left vs non-dominant right MCA occlusion?')}
             className="btn btn-sm btn-secondary"
             style={{ fontSize: '10.5px', padding: '3px 8px', whiteSpace: 'nowrap', flexShrink: 0 }}
           >
-            🧠 Defisit MCA Kiri vs Kanan
+            🧠 Left vs Right MCA Deficit
           </button>
           <button
-            onClick={() => handleSendMessage('Berdasarkan kriteria trial DAWN dan DEFUSE 3, kapan pasien stroke onset 6-24 jam diindikasikan untuk Trombektomi Mekanik (EVT)?')}
+            onClick={() => handleSendMessage('Under DAWN and DEFUSE 3 trial criteria, which acute stroke patients qualify for Mechanical Thrombectomy (EVT) in the 6-24 hour extended window?')}
             className="btn btn-sm btn-secondary"
             style={{ fontSize: '10.5px', padding: '3px 8px', whiteSpace: 'nowrap', flexShrink: 0 }}
           >
-            ⚡ Kriteria EVT Extended Window
+            ⚡ Extended Window EVT Criteria
           </button>
           <button
-            onClick={() => handleSendMessage('Kapan waktu paling aman untuk memulai kembali antikoagulan (DOAC) setelah stroke iskemik dengan fibrilasi atrium?')}
+            onClick={() => handleSendMessage('What is the optimal timing and safety protocol to initiate or resume DOAC anticoagulation following acute ischemic stroke in atrial fibrillation?')}
             className="btn btn-sm btn-secondary"
             style={{ fontSize: '10.5px', padding: '3px 8px', whiteSpace: 'nowrap', flexShrink: 0 }}
           >
-            💊 Aturan Mulai DOAC
+            💊 DOAC Resumption Protocol
           </button>
         </div>
 
@@ -774,7 +774,7 @@ ${text}
                 handleSendMessage();
               }
             }}
-            placeholder="Tanyakan protokol tPA/EVT, interpretasi scan, atau interaksi obat..."
+            placeholder="Ask about tPA/EVT protocols, scan interpretation, or drug interactions..."
             disabled={isStreaming}
             style={{
               flex: 1,
