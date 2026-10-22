@@ -1,95 +1,180 @@
 import React, { useState } from 'react';
-import { Timer, AlertTriangle, Zap, CheckCircle2, XCircle, Clock } from 'lucide-react';
+import { 
+  Timer, 
+  AlertTriangle, 
+  Zap, 
+  CheckCircle2, 
+  XCircle, 
+  Clock, 
+  Activity, 
+  ShieldAlert, 
+  Syringe, 
+  Stethoscope,
+  Flame
+} from 'lucide-react';
 
 export const GoldenHourClock: React.FC = () => {
-  // Time in minutes (0 to 360, default at 75 mins / 1.25 hours)
-  const [minutes, setMinutes] = useState<number>(75);
+  // Time in minutes (0 to 360, default at 80 mins / 1.33 hours)
+  const [minutes, setMinutes] = useState<number>(80);
 
-  // Biological loss formulas based on Saver JL. (Stroke 2006)
-  // 1.9M neurons/min, 14B synapses/min, 12km (7.5 miles) myelinated fibers/min
+  // Biological loss formulas based on Saver JL. (Stroke 2006; 37:263-266)
+  // Acute untreated large vessel occlusion (LVO) MCA stroke:
+  // 1.9 million neurons / minute
+  // 14 billion synapses / minute
+  // 12 km (7.5 miles) myelinated nerve fibers / minute
+  // 3.1 weeks of accelerated brain aging per minute
   const neuronsLost = Math.floor(minutes * 1.9 * 1_000_000);
   const synapsesLost = Math.floor(minutes * 14 * 1_000_000_000);
   const agingWeeks = Math.floor(minutes * 3.1);
   const fiberKm = (minutes * 12).toFixed(1);
 
-  // Penumbra vs Infarct Core percentage
-  // At 0 mins: Penumbra is 95%, Core is 5%
-  // At 360 mins: Penumbra is 5%, Core is 95%
-  const corePercent = Math.min(95, Math.max(5, Math.round((minutes / 360) * 90 + 5)));
-  const penumbraPercent = 100 - corePercent;
+  // Infarct Core vs Penumbra dynamics:
+  // Total at-risk territory: ~120 mL (typical MCA territory)
+  // Core volume starts small (~10 mL) and expands up to ~110 mL at 6 hours
+  // Penumbra starts large (~110 mL) and shrinks towards 0 mL
+  const coreVolume = Math.min(115, Math.round(8 + (minutes / 360) * 105));
+  const penumbraVolume = Math.max(0, 120 - coreVolume);
+  const mismatchRatio = coreVolume > 0 ? (penumbraVolume / coreVolume).toFixed(1) : '9.9';
 
-  // Determining current therapeutic status
-  let statusBadge = {
-    title: 'Optimal Golden Window (IV Thrombolysis)',
-    color: 'badge-success',
-    description: 'Highest efficacy for IV tPA (Alteplase/Tenecteplase). Every 15 minutes saved significantly boosts full functional independence.',
-  };
+  // ASPECTS Score (Alberta Stroke Program Early CT Score: 10 is normal, 0 is total MCA infarct)
+  const aspectsScore = Math.max(1, Math.round(10 - (minutes / 360) * 8.5));
 
-  if (minutes > 270) {
-    statusBadge = {
-      title: 'Extended EVT Thrombectomy Window (Perfusion Dependent)',
-      color: 'badge-danger',
-      description: 'Exceeds standard IV tPA window. Emergency Endovascular Mechanical Thrombectomy (EVT) remains viable up to 24h if perfusion CT demonstrates viable penumbra mismatch.',
-    };
-  } else if (minutes > 180) {
-    statusBadge = {
-      title: 'Extended IV Thrombolysis Window',
-      color: 'badge-warning',
-      description: 'Eligible for IV thrombolysis under specific criteria (age, stroke severity, prior anticoagulation status). Rapid transport is essential.',
-    };
+  // Determine clinical triage window
+  let windowCategory: 'golden' | 'extended-iv' | 'evt-only' | 'late-salvage';
+  if (minutes <= 180) {
+    windowCategory = 'golden';
+  } else if (minutes <= 270) {
+    windowCategory = 'extended-iv';
+  } else if (minutes <= 360) {
+    windowCategory = 'evt-only';
+  } else {
+    windowCategory = 'late-salvage';
   }
 
+  const presets = [
+    { label: '30m (EMS On-Scene)', mins: 30 },
+    { label: '60m (Door-to-Needle Target)', mins: 60 },
+    { label: '150m (CT Suite)', mins: 150 },
+    { label: '240m (4h Window)', mins: 240 },
+    { label: '360m (6h EVT Window)', mins: 360 },
+  ];
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-      {/* Header Banner */}
-      <div className="glass-card" style={{ padding: '32px', background: 'linear-gradient(135deg, #ffffff, #f0f9ff)' }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '20px' }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-              <span className="badge badge-primary">
-                <Timer size={13} /> Time is Brain
-              </span>
-              <span className={`badge ${statusBadge.color}`}>
-                {minutes < 60 ? `${minutes} Mins Elapsed` : `${(minutes / 60).toFixed(1)} Hours Elapsed`}
-              </span>
-            </div>
-            <h2 style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '8px' }}>
-              Golden Hour & Neuron Survival Clock
-            </h2>
-            <p style={{ color: 'var(--text-muted)', maxWidth: '750px', fontSize: '15px' }}>
-              Every single minute during an acute untreated ischemic stroke destroys approximately 1.9 million neurons. Drag the interactive timeline to visualize the irreversible cellular clock and penumbral tissue rescue windows.
-            </p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+      {/* Visual Stroke Pathology Hero Banner with Real 3D Asset */}
+      <div 
+        className="glass-card" 
+        style={{ 
+          padding: '0', 
+          overflow: 'hidden',
+          display: 'grid',
+          gridTemplateColumns: 'minmax(320px, 1.2fr) minmax(280px, 0.8fr)',
+          backgroundColor: '#ffffff'
+        }}
+      >
+        <div style={{ padding: '36px 36px 32px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+            <span className="badge badge-danger">
+              <Flame size={13} /> Time is Brain Protocol
+            </span>
+            <span className="badge badge-primary">
+              <Timer size={13} /> Saver JL. Hemodynamic Model
+            </span>
+            <span className="badge badge-warning">
+              {minutes <= 60 ? `${minutes} Mins Elapsed` : `${(minutes / 60).toFixed(1)}h Elapsed`}
+            </span>
           </div>
 
-          <div style={{
-            padding: '16px 24px',
-            backgroundColor: '#ffffff',
-            borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--border-light)',
-            boxShadow: 'var(--shadow-sm)',
-            textAlign: 'center'
-          }}>
-            <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-              Accelerated Brain Aging
+          <h1 style={{ fontSize: '32px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '12px', letterSpacing: '-0.02em' }}>
+            Golden Hour & Penumbra Survival Console
+          </h1>
+          
+          <p style={{ color: 'var(--text-muted)', fontSize: '15px', lineHeight: 1.6, marginBottom: '24px' }}>
+            During an acute large vessel occlusion (LVO), an untreated ischemic stroke eliminates <strong>1.9 million neurons every minute</strong>. Explore the cellular clock, witness the salvageable penumbra shrink into the necrotic core, and analyze real-world thrombolysis and mechanical thrombectomy windows.
+          </p>
+
+          {/* Quick Presets */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-subtle)', marginRight: '6px' }}>
+              CLINICAL PRESETS:
             </span>
-            <div style={{ fontSize: '26px', fontWeight: 800, color: 'var(--danger-500)', fontFamily: 'var(--font-mono)' }}>
-              +{agingWeeks} Weeks
-            </div>
-            <span style={{ fontSize: '11.5px', color: 'var(--text-subtle)' }}>Equivalent cellular decay</span>
+            {presets.map((p) => (
+              <button
+                key={p.mins}
+                onClick={() => setMinutes(p.mins)}
+                className={`btn btn-sm ${minutes === p.mins ? 'btn-primary' : 'btn-secondary'}`}
+                style={{ fontSize: '12px', padding: '5px 12px' }}
+              >
+                {p.label}
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* Interactive Timeline Slider */}
-        <div style={{ marginTop: '36px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-main)' }}>
-              Elapsed Time from "Last Known Well" (Onset)
+        {/* Photorealistic 3D Clot Asset Visual */}
+        <div style={{ position: 'relative', minHeight: '260px', overflow: 'hidden' }}>
+          <img 
+            src="/assets/ischemic_clot_vessel.jpg" 
+            alt="Arterial Thrombus Obstructing Blood Flow in Cerebral Vessel" 
+            style={{ 
+              width: '100%', 
+              height: '100%', 
+              objectFit: 'cover',
+              objectPosition: 'center'
+            }} 
+          />
+          <div style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            padding: '16px 20px',
+            background: 'linear-gradient(to top, rgba(15, 23, 42, 0.92) 0%, rgba(15, 23, 42, 0) 100%)',
+            color: '#ffffff'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 700 }}>
+              <span className="pulse-active" style={{ backgroundColor: '#ef4444' }}></span>
+              Acute Thromboembolic Occlusion (MCA M1 Bifurcation)
+            </div>
+            <p style={{ fontSize: '11px', color: '#cbd5e1', marginTop: '2px' }}>
+              Fibrin mesh & erythrocyte entrapment arresting cerebral perfusion
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Interactive Scrubbing Station */}
+      <div className="glass-card" style={{ padding: '32px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '16px', marginBottom: '18px' }}>
+          <div>
+            <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--primary-700)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Interactive Elapsed Time Controller
             </span>
-            <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--primary-600)', fontFamily: 'var(--font-mono)' }}>
-              {Math.floor(minutes / 60)}h {minutes % 60}m ({minutes} minutes)
-            </span>
+            <h3 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-main)', marginTop: '2px' }}>
+              Time Elapsed from Last Known Well (LKW)
+            </h3>
           </div>
 
+          <div style={{
+            display: 'flex',
+            alignItems: 'baseline',
+            gap: '8px',
+            padding: '10px 20px',
+            backgroundColor: 'var(--bg-muted)',
+            borderRadius: 'var(--radius-md)',
+            border: '1px solid var(--border-light)'
+          }}>
+            <span style={{ fontSize: '28px', fontWeight: 800, color: 'var(--primary-700)', fontFamily: 'var(--font-mono)' }}>
+              {Math.floor(minutes / 60)}h {minutes % 60}m
+            </span>
+            <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-muted)' }}>
+              ({minutes} minutes)
+            </span>
+          </div>
+        </div>
+
+        {/* High-Fidelity Custom Styled Range Slider */}
+        <div style={{ position: 'relative', margin: '24px 0 16px' }}>
           <input
             type="range"
             min={0}
@@ -99,156 +184,388 @@ export const GoldenHourClock: React.FC = () => {
             onChange={(e) => setMinutes(Number(e.target.value))}
             style={{
               width: '100%',
-              height: '10px',
-              borderRadius: '5px',
-              background: `linear-gradient(to right, #10b981 0%, #0284c7 35%, #f59e0b 55%, #ef4444 85%, #b91c1c 100%)`,
+              height: '14px',
+              borderRadius: '7px',
+              background: 'linear-gradient(to right, #10b981 0%, #06b6d4 40%, #f59e0b 65%, #f43f5e 85%, #be123c 100%)',
               outline: 'none',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.15)'
             }}
           />
 
-          {/* Key Milestones Indicator */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11.5px', color: 'var(--text-muted)', marginTop: '8px' }}>
-            <span>0h (Onset)</span>
-            <span style={{ color: '#059669', fontWeight: 600 }}>3.0h (Standard tPA)</span>
-            <span style={{ color: '#d97706', fontWeight: 600 }}>4.5h (Extended IV Window)</span>
-            <span style={{ color: '#dc2626', fontWeight: 600 }}>6.0h+ (EVT Thrombectomy)</span>
+          {/* Time Milestone Pins */}
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(5, 1fr)', 
+            marginTop: '12px', 
+            fontSize: '12px',
+            textAlign: 'center'
+          }}>
+            <div style={{ textAlign: 'left' }}>
+              <div style={{ fontWeight: 700, color: '#059669' }}>0h (Onset)</div>
+              <div style={{ fontSize: '11px', color: 'var(--text-subtle)' }}>100% Penumbra</div>
+            </div>
+            <div>
+              <div style={{ fontWeight: 700, color: '#0891b2' }}>3.0h (Standard IV)</div>
+              <div style={{ fontSize: '11px', color: 'var(--text-subtle)' }}>tPA / TNK Max</div>
+            </div>
+            <div>
+              <div style={{ fontWeight: 700, color: '#d97706' }}>4.5h (Extended IV)</div>
+              <div style={{ fontSize: '11px', color: 'var(--text-subtle)' }}>ECASS-3 Limit</div>
+            </div>
+            <div>
+              <div style={{ fontWeight: 700, color: '#e11d48' }}>6.0h (Standard EVT)</div>
+              <div style={{ fontSize: '11px', color: 'var(--text-subtle)' }}>Stent Retriever</div>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontWeight: 700, color: '#881337' }}>24.0h (DAWN/DEFUSE-3)</div>
+              <div style={{ fontSize: '11px', color: 'var(--text-subtle)' }}>Perfusion Mismatch</div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Real-Time Biological Loss Counters */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px' }}>
-        <div className="glass-card" style={{ padding: '24px', borderLeft: '4px solid var(--danger-500)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-            <Zap size={18} color="var(--danger-500)" />
-            <h4 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-muted)' }}>Neurons Destroyed</h4>
+      {/* Cellular Decay Live Metric Counters */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px' }}>
+        <div className="glass-card" style={{ padding: '24px', borderTop: '4px solid #ef4444' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+              Neurons Destroyed
+            </span>
+            <Zap size={18} color="#ef4444" />
           </div>
-          <div style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)', fontFamily: 'var(--font-mono)' }}>
-            {(neuronsLost / 1_000_000).toFixed(1)} Million
+          <div style={{ fontSize: '30px', fontWeight: 800, color: 'var(--text-main)', fontFamily: 'var(--font-mono)' }}>
+            {(neuronsLost / 1_000_000).toFixed(1)} M
           </div>
           <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
-            Loss rate: 1,900,000 neurons / min
+            Loss velocity: 1.9 million neurons / min
           </p>
+          <div style={{ 
+            marginTop: '12px', 
+            padding: '6px 10px', 
+            backgroundColor: '#fff1f2', 
+            borderRadius: 'var(--radius-sm)',
+            fontSize: '11.5px',
+            color: '#be123c',
+            fontWeight: 600
+          }}>
+            {(neuronsLost).toLocaleString()} functional cortical cells lost
+          </div>
         </div>
 
-        <div className="glass-card" style={{ padding: '24px', borderLeft: '4px solid var(--synapse-500)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-            <Clock size={18} color="var(--synapse-500)" />
-            <h4 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-muted)' }}>Synapses Severed</h4>
+        <div className="glass-card" style={{ padding: '24px', borderTop: '4px solid #8b5cf6' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+              Synapses Severed
+            </span>
+            <Activity size={18} color="#8b5cf6" />
           </div>
-          <div style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)', fontFamily: 'var(--font-mono)' }}>
+          <div style={{ fontSize: '30px', fontWeight: 800, color: 'var(--text-main)', fontFamily: 'var(--font-mono)' }}>
             {(synapsesLost / 1_000_000_000).toFixed(1)} Billion
           </div>
           <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
-            Loss rate: 14,000,000,000 synapses / min
+            Loss velocity: 14 billion synapses / min
           </p>
+          <div style={{ 
+            marginTop: '12px', 
+            padding: '6px 10px', 
+            backgroundColor: '#f5f3ff', 
+            borderRadius: 'var(--radius-sm)',
+            fontSize: '11.5px',
+            color: '#6d28d9',
+            fontWeight: 600
+          }}>
+            {(synapsesLost / 1_000_000_000).toFixed(2)} trillion synaptic connections erased
+          </div>
         </div>
 
-        <div className="glass-card" style={{ padding: '24px', borderLeft: '4px solid var(--primary-500)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-            <AlertTriangle size={18} color="var(--primary-500)" />
-            <h4 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-muted)' }}>Nerve Fibers Degraded</h4>
+        <div className="glass-card" style={{ padding: '24px', borderTop: '4px solid #0891b2' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+              Myelinated Fibers
+            </span>
+            <Clock size={18} color="#0891b2" />
           </div>
-          <div style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)', fontFamily: 'var(--font-mono)' }}>
+          <div style={{ fontSize: '30px', fontWeight: 800, color: 'var(--text-main)', fontFamily: 'var(--font-mono)' }}>
             {fiberKm} km
           </div>
           <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
-            7.5 miles of myelinated tracts / min
+            12 km (7.5 miles) of white matter / min
           </p>
+          <div style={{ 
+            marginTop: '12px', 
+            padding: '6px 10px', 
+            backgroundColor: '#ecfeff', 
+            borderRadius: 'var(--radius-sm)',
+            fontSize: '11.5px',
+            color: '#0e7490',
+            fontWeight: 600
+          }}>
+            Accelerated brain decay: +{agingWeeks} weeks
+          </div>
+        </div>
+
+        <div className="glass-card" style={{ padding: '24px', borderTop: '4px solid #10b981' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+              ASPECTS Score
+            </span>
+            <ShieldAlert size={18} color={aspectsScore >= 7 ? '#10b981' : '#e11d48'} />
+          </div>
+          <div style={{ fontSize: '30px', fontWeight: 800, color: aspectsScore >= 7 ? '#059669' : '#e11d48', fontFamily: 'var(--font-mono)' }}>
+            {aspectsScore} / 10
+          </div>
+          <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
+            Alberta Stroke Program Early CT Score
+          </p>
+          <div style={{ 
+            marginTop: '12px', 
+            padding: '6px 10px', 
+            backgroundColor: aspectsScore >= 7 ? '#f0fdf4' : '#fff1f2', 
+            borderRadius: 'var(--radius-sm)',
+            fontSize: '11.5px',
+            color: aspectsScore >= 7 ? '#15803d' : '#be123c',
+            fontWeight: 600
+          }}>
+            {aspectsScore >= 7 ? 'Favorable parenchyma for EVT' : 'Extensive early ischemic change'}
+          </div>
         </div>
       </div>
 
-      {/* Visual Penumbra vs Infarct Core Expansion Diagram */}
-      <div className="glass-card" style={{ padding: '28px' }}>
-        <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '6px' }}>
-          Tissue Dynamics: The Penumbra vs. Infarct Core
-        </h3>
-        <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', marginBottom: '20px' }}>
-          The <strong>Ischemic Penumbra</strong> is the under-perfused brain tissue that is functionally dormant but structurally alive. As time passes, the non-viable <strong>Infarct Core</strong> engulfs the penumbra.
-        </p>
+      {/* Realistic CT Perfusion (CTP) Mismatch Visualization Console */}
+      <div className="glass-card" style={{ padding: '32px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '16px', marginBottom: '24px' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+              <span className="badge badge-primary">RAPID CTP Perfusion Software Simulation</span>
+              <span className="badge badge-danger">LVO MCA Territory Mismatch</span>
+            </div>
+            <h3 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-main)' }}>
+              Axial CT Perfusion Mismatch Map & Tissue Viability
+            </h3>
+            <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginTop: '2px' }}>
+              Real-time differentiation between irreversibly infarcted core (CBF &lt; 30%) and salvageable ischemic penumbra (Tmax &gt; 6.0s).
+            </p>
+          </div>
 
-        {/* Visual Progress Bar Ratio */}
+          <div style={{ display: 'flex', gap: '14px' }}>
+            <div style={{
+              padding: '12px 18px',
+              backgroundColor: '#fff1f2',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid #fecdd3',
+              textAlign: 'center'
+            }}>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#e11d48', textTransform: 'uppercase' }}>Infarct Core</span>
+              <div style={{ fontSize: '20px', fontWeight: 800, color: '#be123c', fontFamily: 'var(--font-mono)' }}>
+                {coreVolume} mL
+              </div>
+              <span style={{ fontSize: '11px', color: '#9f1239' }}>CBF &lt; 30% (Necrotic)</span>
+            </div>
+
+            <div style={{
+              padding: '12px 18px',
+              backgroundColor: '#ecfeff',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid #a5f3fc',
+              textAlign: 'center'
+            }}>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#0891b2', textTransform: 'uppercase' }}>Penumbra</span>
+              <div style={{ fontSize: '20px', fontWeight: 800, color: '#0e7490', fontFamily: 'var(--font-mono)' }}>
+                {penumbraVolume} mL
+              </div>
+              <span style={{ fontSize: '11px', color: '#155e75' }}>Tmax &gt; 6s (Salvageable)</span>
+            </div>
+
+            <div style={{
+              padding: '12px 18px',
+              backgroundColor: Number(mismatchRatio) >= 1.8 ? '#f0fdf4' : '#fffbeb',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid ' + (Number(mismatchRatio) >= 1.8 ? '#bbf7d0' : '#fde68a'),
+              textAlign: 'center'
+            }}>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: Number(mismatchRatio) >= 1.8 ? '#15803d' : '#b45309', textTransform: 'uppercase' }}>Mismatch Ratio</span>
+              <div style={{ fontSize: '20px', fontWeight: 800, color: Number(mismatchRatio) >= 1.8 ? '#15803d' : '#b45309', fontFamily: 'var(--font-mono)' }}>
+                {mismatchRatio}x
+              </div>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Target: &ge; 1.8x</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Anatomical Axial CT Slice Canvas Graphics */}
         <div style={{
-          height: '42px',
-          borderRadius: 'var(--radius-md)',
-          overflow: 'hidden',
-          display: 'flex',
-          boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.1)',
-          marginBottom: '14px'
+          display: 'grid',
+          gridTemplateColumns: 'minmax(280px, 340px) 1fr',
+          gap: '32px',
+          alignItems: 'center'
         }}>
+          {/* Simulated CT Scan Slice Display */}
           <div style={{
-            width: `${corePercent}%`,
-            backgroundColor: '#ef4444',
+            position: 'relative',
+            width: '100%',
+            aspectRatio: '1 / 1',
+            backgroundColor: '#090d16',
+            borderRadius: 'var(--radius-lg)',
+            border: '2px solid #1e293b',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+            overflow: 'hidden',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            color: '#ffffff',
-            fontWeight: 700,
-            fontSize: '13px',
-            transition: 'width 0.2s ease',
-            minWidth: '70px'
+            justifyContent: 'center'
           }}>
-            Core {corePercent}%
-          </div>
-          <div style={{
-            width: `${penumbraPercent}%`,
-            backgroundColor: '#0284c7',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#ffffff',
-            fontWeight: 700,
-            fontSize: '13px',
-            transition: 'width 0.2s ease',
-            minWidth: '90px'
-          }}>
-            Salvageable Penumbra {penumbraPercent}%
-          </div>
-        </div>
+            {/* SVG Axial CT Slice Graphic */}
+            <svg viewBox="0 0 300 300" style={{ width: '92%', height: '92%' }}>
+              <defs>
+                {/* Glow filter for penumbra */}
+                <filter id="penumbra-glow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="6" result="blur" />
+                  <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                </filter>
+                <radialGradient id="brain-tissue" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stopColor="#2a3342" />
+                  <stop offset="85%" stopColor="#1f2937" />
+                  <stop offset="100%" stopColor="#111827" />
+                </radialGradient>
+              </defs>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-muted)' }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#ef4444' }}></span>
-            <strong>Infarct Core:</strong> Irreversibly necrosed tissue with cellular energy failure.
-          </span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#0284c7' }}></span>
-            <strong>Ischemic Penumbra:</strong> Can be rescued if reperfusion occurs before collapse.
-          </span>
-        </div>
-      </div>
+              {/* Skull contour */}
+              <ellipse cx="150" cy="150" rx="130" ry="142" fill="#030712" stroke="#475569" strokeWidth="6" />
 
-      {/* Critical Clinical Action Checklist */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
-        <div className="glass-card" style={{ padding: '24px', backgroundColor: 'var(--success-50)', borderColor: 'var(--success-100)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-            <CheckCircle2 size={20} color="var(--success-600)" />
-            <h4 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--success-600)' }}>
-              What MUST Be Done Immediately
-            </h4>
-          </div>
-          <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13.5px', color: 'var(--text-body)' }}>
-            <li>✓ <strong>Note the Exact Time:</strong> Pinpoint the precise minute the person was last seen completely normal.</li>
-            <li>✓ <strong>Call Emergency Dispatch:</strong> Paramedics pre-notify the stroke team and CT scanner while en route.</li>
-            <li>✓ <strong>Keep Patient Flat & Resting:</strong> Sitting up abruptly can reduce gravitational blood flow to the ischemic penumbra.</li>
-            <li>✓ <strong>Gather Medication List:</strong> Bring any blood thinners (Warfarin, Eliquis, Plavix) to the emergency bay.</li>
-          </ul>
-        </div>
+              {/* Brain Parenchyma Outline */}
+              <ellipse cx="150" cy="150" rx="122" ry="134" fill="url(#brain-tissue)" />
 
-        <div className="glass-card" style={{ padding: '24px', backgroundColor: 'var(--danger-50)', borderColor: 'var(--danger-100)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-            <XCircle size={20} color="var(--danger-600)" />
-            <h4 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--danger-600)' }}>
-              Dangerous Mistakes to Avoid
-            </h4>
+              {/* Interhemispheric Falx Cerebri fissure */}
+              <line x1="150" y1="20" x2="150" y2="280" stroke="#0f172a" strokeWidth="3" />
+
+              {/* Lateral Ventricles (CSF spaces) */}
+              <path d="M 144 110 C 138 130 138 160 144 185 C 146 170 146 130 144 110 Z" fill="#030712" />
+              <path d="M 156 110 C 162 130 162 160 156 185 C 154 170 154 130 156 110 Z" fill="#030712" />
+
+              {/* Right MCA Territory: Salvageable Penumbra (Luminous Cyan) */}
+              <circle
+                cx="90"
+                cy="145"
+                r={Math.min(62, 28 + (120 - coreVolume) * 0.35)}
+                fill="#06b6d4"
+                opacity={penumbraVolume > 5 ? "0.65" : "0.1"}
+                filter="url(#penumbra-glow)"
+              />
+
+              {/* Right MCA Territory: Expanding Necrotic Infarct Core (Crimson Red) */}
+              <circle
+                cx="90"
+                cy="145"
+                r={Math.min(65, 12 + coreVolume * 0.45)}
+                fill="#ef4444"
+                opacity="0.88"
+                filter="url(#penumbra-glow)"
+              />
+
+              {/* Clot obstruction marker */}
+              <circle cx="120" cy="150" r="4.5" fill="#ffffff" stroke="#e11d48" strokeWidth="2" />
+              <text x="126" y="146" fill="#f8fafc" fontSize="9" fontWeight="bold">M1 LVO</text>
+
+              {/* Annotations */}
+              <text x="35" y="45" fill="#94a3b8" fontSize="10" fontFamily="monospace">AXIAL CT PERFUSION</text>
+              <text x="35" y="60" fill="#38bdf8" fontSize="9" fontFamily="monospace">RAPID-CTP AUTOMATED</text>
+              <text x="220" y="45" fill="#f43f5e" fontSize="10" fontFamily="monospace">R-HEMISPHERE</text>
+            </svg>
+
+            {/* Scan Overlay Metadata Box */}
+            <div style={{
+              position: 'absolute',
+              bottom: '10px',
+              left: '12px',
+              right: '12px',
+              backgroundColor: 'rgba(15, 23, 42, 0.85)',
+              backdropFilter: 'blur(4px)',
+              padding: '6px 10px',
+              borderRadius: 'var(--radius-sm)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              fontSize: '11px',
+              color: '#cbd5e1',
+              fontFamily: 'var(--font-mono)'
+            }}>
+              <span style={{ color: '#38bdf8' }}>Cyan: Penumbra (Tmax &gt; 6s)</span>
+              <span style={{ color: '#f87171' }}>Red: Core (rCBF &lt; 30%)</span>
+            </div>
           </div>
-          <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13.5px', color: 'var(--text-body)' }}>
-            <li>✕ <strong>NEVER Give Aspirin Before CT:</strong> If the stroke is hemorrhagic (bleeding), aspirin causes fatal hemorrhage expansion.</li>
-            <li>✕ <strong>NEVER Give Water or Food:</strong> Stroke impairs the pharyngeal gag reflex; food or liquids enter the lungs (aspiration pneumonia).</li>
-            <li>✕ <strong>NEVER Drive Yourself to Hospital:</strong> EMS crews can administer oxygen, manage airway, and divert to a certified Comprehensive Stroke Center.</li>
-            <li>✕ <strong>NEVER Wait to See if It Gets Better:</strong> Transient Ischemic Attacks (TIAs) precede major strokes within 48 hours.</li>
-          </ul>
+
+          {/* Clinical Decision & Triage Pathway */}
+          <div>
+            <div style={{
+              padding: '24px',
+              borderRadius: 'var(--radius-lg)',
+              backgroundColor: windowCategory === 'golden' ? '#f0fdf4' : windowCategory === 'extended-iv' ? '#fffbeb' : '#fff1f2',
+              border: '1px solid ' + (windowCategory === 'golden' ? '#bbf7d0' : windowCategory === 'extended-iv' ? '#fde68a' : '#fecdd3'),
+              marginBottom: '20px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                {windowCategory === 'golden' && <CheckCircle2 size={24} color="#15803d" />}
+                {windowCategory === 'extended-iv' && <Syringe size={24} color="#b45309" />}
+                {windowCategory === 'evt-only' && <AlertTriangle size={24} color="#be123c" />}
+                {windowCategory === 'late-salvage' && <XCircle size={24} color="#991b1b" />}
+
+                <div>
+                  <h4 style={{ 
+                    fontSize: '17px', 
+                    fontWeight: 800, 
+                    color: windowCategory === 'golden' ? '#14532d' : windowCategory === 'extended-iv' ? '#78350f' : '#881337' 
+                  }}>
+                    {windowCategory === 'golden' && 'Optimal IV Thrombolysis Window (0 - 3.0 Hours)'}
+                    {windowCategory === 'extended-iv' && 'Extended IV Thrombolysis Window (3.0 - 4.5 Hours)'}
+                    {windowCategory === 'evt-only' && 'Mechanical Thrombectomy Primary Window (4.5 - 6.0 Hours)'}
+                    {windowCategory === 'late-salvage' && 'Extended Window Perfusion Criteria (6.0 - 24.0 Hours)'}
+                  </h4>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>
+                    Evidence Level: Class I, Level A (AHA/ASA 2019 Acute Stroke Guidelines)
+                  </span>
+                </div>
+              </div>
+
+              <p style={{ fontSize: '13.5px', color: 'var(--text-body)', lineHeight: 1.55, marginTop: '8px' }}>
+                {windowCategory === 'golden' && 'Patient is within the prime therapeutic window. Administer IV Alteplase (0.9 mg/kg) or Tenecteplase (0.25 mg/kg) immediately if CT head excludes hemorrhage and no contraindications exist. Prepare concurrently for catheter angio if LVO confirmed.'}
+                {windowCategory === 'extended-iv' && 'Eligible for IV tPA under ECASS-3 inclusion criteria (caution if age > 80, NIHSS > 25, or prior stroke + diabetes). Rapidly transfer to Neuro-Interventional Suite for potential bridging EVT.'}
+                {windowCategory === 'evt-only' && 'Exceeds standard IV tPA time window. Patient is prime candidate for Endovascular Thrombectomy (EVT) using stent-retriever (Solitaire/Trevo) or contact aspiration if ASPECTS >= 6.'}
+                {windowCategory === 'late-salvage' && `Standard time window expired. EVT remains strongly indicated under DAWN / DEFUSE-3 clinical trial criteria if CT Perfusion demonstrates target mismatch (Core < 70 mL, Mismatch Ratio >= 1.8x, Salvageable Penumbra >= 15 mL). Current mismatch: ${mismatchRatio}x.`}
+              </p>
+            </div>
+
+            {/* Step-by-Step Triage Checklist */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div style={{
+                padding: '12px 16px',
+                backgroundColor: 'var(--bg-muted)',
+                borderRadius: 'var(--radius-md)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px'
+              }}>
+                <Stethoscope size={18} color="var(--primary-600)" />
+                <div>
+                  <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-main)' }}>NIHSS Scoring</div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-subtle)' }}>Quantifies neurologic deficit (0-42)</div>
+                </div>
+              </div>
+
+              <div style={{
+                padding: '12px 16px',
+                backgroundColor: 'var(--bg-muted)',
+                borderRadius: 'var(--radius-md)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px'
+              }}>
+                <Syringe size={18} color="var(--primary-600)" />
+                <div>
+                  <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-main)' }}>Door-to-Needle</div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-subtle)' }}>Target: &le; 45 minutes of arrival</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

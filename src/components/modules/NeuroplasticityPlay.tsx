@@ -1,26 +1,39 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Sparkles, RefreshCw, Zap, Award, BookOpen, Play } from 'lucide-react';
+import { 
+  Sparkles, 
+  RefreshCw, 
+  Zap, 
+  Award, 
+  Play, 
+  Dna, 
+  Activity, 
+  TrendingUp
+} from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 export const NeuroplasticityPlay: React.FC = () => {
-
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [strokeOccurred, setStrokeOccurred] = useState<boolean>(false);
-  const [rehabReps, setRehabReps] = useState<number>(0);
+  const [strokeOccurred, setStrokeOccurred] = useState<boolean>(true);
+  const [rehabReps, setRehabReps] = useState<number>(4);
   const [isAutoTraining, setIsAutoTraining] = useState<boolean>(false);
+  const [activeStrategy, setActiveStrategy] = useState<'cimt' | 'aerobic' | 'mirror'>('cimt');
 
-  // Recovery percentage calculation
-  const maxReps = 20;
+  const maxReps = 25;
   const recoveryPercent = strokeOccurred 
-    ? Math.min(100, Math.round((rehabReps / maxReps) * 98))
+    ? Math.min(100, Math.round((rehabReps / maxReps) * 96))
     : 100;
+
+  // Biological metrics
+  const bdnfLevel = (18 + (rehabReps / maxReps) * 48).toFixed(1); // ng/mL (Brain-Derived Neurotrophic Factor)
+  const synapticDensity = Math.round(35 + (rehabReps / maxReps) * 65); // %
+  const functionalScore = (1.5 + (rehabReps / maxReps) * 4.2).toFixed(1); // Fugl-Meyer Motor Scale increment
 
   // Trigger Confetti upon full recovery milestone
   useEffect(() => {
     if (rehabReps === maxReps) {
       confetti({
-        particleCount: 80,
-        spread: 70,
+        particleCount: 100,
+        spread: 80,
         origin: { y: 0.6 }
       });
     }
@@ -43,7 +56,7 @@ export const NeuroplasticityPlay: React.FC = () => {
     return () => clearInterval(interval);
   }, [isAutoTraining, strokeOccurred, rehabReps]);
 
-  // Main Canvas Rendering Loop
+  // Biological Synaptogenesis Canvas Engine
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -53,349 +66,444 @@ export const NeuroplasticityPlay: React.FC = () => {
     let animId: number;
     let pulseOffset = 0;
 
-    const width = canvas.width = canvas.parentElement?.clientWidth || 700;
-    const height = canvas.height = 380;
+    const width = canvas.width = canvas.parentElement?.clientWidth || 750;
+    const height = canvas.height = 400;
 
-    // Fixed Nodes Layout
-    const startNode = { x: 70, y: height / 2, label: 'Motor Cortex (Command)', color: '#0284c7' };
-    const endNode = { x: width - 80, y: height / 2, label: 'Hand Muscle (Effector)', color: '#10b981' };
+    // Biological Node Positions
+    const motorSoma = { x: 80, y: height / 2, label: 'Motor Cortex (Soma)' };
+    const targetMuscle = { x: width - 90, y: height / 2, label: 'Hand Effector Muscle' };
+    const lesionCenter = { x: width / 2, y: height / 2, radius: 45 };
 
-    // Primary Damaged Pathway
-    const primaryMid = { x: width / 2, y: height / 2 };
-
-    // Bypass Interneurons (Upper & Lower Peri-infarct Arc)
-    const bypassNodes = [
-      { x: width * 0.32, y: height * 0.22, color: '#8b5cf6' },
-      { x: width * 0.50, y: height * 0.16, color: '#8b5cf6' },
-      { x: width * 0.68, y: height * 0.22, color: '#8b5cf6' },
-      { x: width * 0.40, y: height * 0.80, color: '#8b5cf6' },
-      { x: width * 0.60, y: height * 0.80, color: '#8b5cf6' },
+    // Peri-infarct collateral relay neurons
+    const relayNodes = [
+      { x: width * 0.32, y: height * 0.22, label: 'Premotor Cortex' },
+      { x: width * 0.50, y: height * 0.14, label: 'Supplementary Motor' },
+      { x: width * 0.68, y: height * 0.22, label: 'Contralateral Cortex' },
+      { x: width * 0.35, y: height * 0.80, label: 'Cerebellar Loop' },
+      { x: width * 0.65, y: height * 0.80, label: 'Sensory Re-map' },
     ];
 
     const render = () => {
       ctx.clearRect(0, 0, width, height);
-      pulseOffset += 0.04;
+      pulseOffset += 0.05;
 
-      // 1. Draw Primary Central Highway
+      // 1. Draw Inactive / Severed Original Corticospinal Tract
       ctx.beginPath();
-      ctx.moveTo(startNode.x, startNode.y);
-      ctx.lineTo(endNode.x, endNode.y);
-      if (!strokeOccurred) {
-        ctx.strokeStyle = '#0284c7';
-        ctx.lineWidth = 6;
-        ctx.stroke();
+      ctx.moveTo(motorSoma.x, motorSoma.y);
+      ctx.lineTo(lesionCenter.x - 35, lesionCenter.y);
+      ctx.strokeStyle = strokeOccurred ? '#cbd5e1' : '#0891b2';
+      ctx.lineWidth = strokeOccurred ? 3 : 6;
+      ctx.stroke();
 
-        // Pulsating electrical wave
-        const waveX = startNode.x + ((pulseOffset * 180) % (endNode.x - startNode.x));
+      ctx.beginPath();
+      ctx.moveTo(lesionCenter.x + 35, lesionCenter.y);
+      ctx.lineTo(targetMuscle.x, targetMuscle.y);
+      ctx.strokeStyle = strokeOccurred ? '#cbd5e1' : '#0891b2';
+      ctx.lineWidth = strokeOccurred ? 3 : 6;
+      ctx.stroke();
+
+      // If no stroke, animate direct central highway pulse
+      if (!strokeOccurred) {
+        const waveX = motorSoma.x + ((pulseOffset * 220) % (targetMuscle.x - motorSoma.x));
         ctx.beginPath();
-        ctx.arc(waveX, height / 2, 8, 0, Math.PI * 2);
-        ctx.fillStyle = '#38bdf8';
-        ctx.shadowColor = '#0284c7';
-        ctx.shadowBlur = 12;
+        ctx.arc(waveX, height / 2, 7, 0, Math.PI * 2);
+        ctx.fillStyle = '#06b6d4';
+        ctx.shadowColor = '#0891b2';
+        ctx.shadowBlur = 14;
         ctx.fill();
         ctx.shadowBlur = 0;
-      } else {
-        // Severed / Infarcted Pathway
-        ctx.strokeStyle = '#cbd5e1';
-        ctx.lineWidth = 4;
-        ctx.setLineDash([8, 8]);
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        // Infarct Necrotic Scar in the center
-        ctx.beginPath();
-        ctx.arc(primaryMid.x, primaryMid.y, 32, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(239, 68, 68, 0.15)';
-        ctx.strokeStyle = '#ef4444';
-        ctx.lineWidth = 2;
-        ctx.fill();
-        ctx.stroke();
-
-        ctx.fillStyle = '#ef4444';
-        ctx.font = 'bold 11px Inter, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('⚡ Infarct Zone', primaryMid.x, primaryMid.y + 4);
       }
 
-      // 2. Draw Peri-infarct Bypass Pathways (Growing with rehab reps)
-      if (strokeOccurred && rehabReps > 0) {
-        const bypassGrowth = Math.min(1, rehabReps / maxReps);
-
-        // Upper Bypass Arc
+      // 2. Infarct Lesion Cavity
+      if (strokeOccurred) {
+        // Necrotic Cavity Shadow
+        const grad = ctx.createRadialGradient(lesionCenter.x, lesionCenter.y, 5, lesionCenter.x, lesionCenter.y, lesionCenter.radius);
+        grad.addColorStop(0, 'rgba(239, 68, 68, 0.35)');
+        grad.addColorStop(0.7, 'rgba(15, 23, 42, 0.15)');
+        grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        ctx.fillStyle = grad;
         ctx.beginPath();
-        ctx.moveTo(startNode.x, startNode.y);
-        ctx.quadraticCurveTo(bypassNodes[0].x, bypassNodes[0].y, bypassNodes[1].x, bypassNodes[1].y);
-        ctx.quadraticCurveTo(bypassNodes[2].x, bypassNodes[2].y, endNode.x, endNode.y);
-        ctx.strokeStyle = `rgba(139, 92, 246, ${0.2 + bypassGrowth * 0.8})`;
-        ctx.lineWidth = 2 + bypassGrowth * 4;
+        ctx.arc(lesionCenter.x, lesionCenter.y, lesionCenter.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Stroke Wall Marker
+        ctx.beginPath();
+        ctx.arc(lesionCenter.x, lesionCenter.y, 22, 0, Math.PI * 2);
+        ctx.fillStyle = '#fee2e2';
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.fill();
+
+        ctx.fillStyle = '#b91c1c';
+        ctx.font = 'bold 10px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('INFARCT', lesionCenter.x, lesionCenter.y - 2);
+        ctx.fillText('CORE', lesionCenter.x, lesionCenter.y + 10);
+      }
+
+      // 3. Sprouting Peri-Infarct Collateral Pathways (Synaptogenesis)
+      const sproutAlpha = Math.min(1, rehabReps / maxReps);
+      const sproutCount = Math.min(relayNodes.length, Math.ceil((rehabReps / maxReps) * relayNodes.length));
+
+      // Draw connection lines to active relay nodes
+      for (let i = 0; i < sproutCount; i++) {
+        const node = relayNodes[i];
+
+        // Connection from Motor Soma to Relay Node
+        ctx.beginPath();
+        ctx.moveTo(motorSoma.x, motorSoma.y);
+        ctx.quadraticCurveTo((motorSoma.x + node.x) / 2, node.y, node.x, node.y);
+        ctx.strokeStyle = `rgba(139, 92, 246, ${0.4 + sproutAlpha * 0.6})`;
+        ctx.lineWidth = 2 + sproutAlpha * 3;
         ctx.stroke();
 
-        // Lower Secondary Sprout
-        if (rehabReps >= 8) {
-          ctx.beginPath();
-          ctx.moveTo(startNode.x, startNode.y);
-          ctx.quadraticCurveTo(bypassNodes[3].x, bypassNodes[3].y, bypassNodes[4].x, bypassNodes[4].y);
-          ctx.lineTo(endNode.x, endNode.y);
-          ctx.strokeStyle = `rgba(139, 92, 246, ${bypassGrowth * 0.6})`;
-          ctx.lineWidth = 2 + bypassGrowth * 2;
-          ctx.stroke();
-        }
+        // Connection from Relay Node to Muscle Effector
+        ctx.beginPath();
+        ctx.moveTo(node.x, node.y);
+        ctx.quadraticCurveTo((node.x + targetMuscle.x) / 2, node.y, targetMuscle.x, targetMuscle.y);
+        ctx.strokeStyle = `rgba(16, 185, 129, ${0.4 + sproutAlpha * 0.6})`;
+        ctx.lineWidth = 2 + sproutAlpha * 3;
+        ctx.stroke();
 
-        // Active Electrical Impulses traveling along the bypass
-        if (rehabReps >= 5) {
-          const t = (pulseOffset * 1.5) % 1;
-          // Approximate curve point for upper arc
-          const pulseX = startNode.x + t * (endNode.x - startNode.x);
-          const pulseY = (height / 2) - Math.sin(t * Math.PI) * (height * 0.38);
+        // Animate Traveling Action Potentials across the rewiring circuits
+        if (rehabReps > 2) {
+          const t = ((pulseOffset * 1.5 + i * 0.7) % 3) / 3;
+          const px = motorSoma.x + (node.x - motorSoma.x) * t;
+          const py = motorSoma.y + (node.y - motorSoma.y) * t;
 
           ctx.beginPath();
-          ctx.arc(pulseX, pulseY, 6, 0, Math.PI * 2);
-          ctx.fillStyle = '#a855f7';
-          ctx.shadowColor = '#c084fc';
+          ctx.arc(px, py, 4.5, 0, Math.PI * 2);
+          ctx.fillStyle = '#8b5cf6';
+          ctx.shadowColor = '#a78bfa';
+          ctx.shadowBlur = 10;
+          ctx.fill();
+          ctx.shadowBlur = 0;
+
+          // Downstream pulse from relay to target
+          const px2 = node.x + (targetMuscle.x - node.x) * t;
+          const py2 = node.y + (targetMuscle.y - node.y) * t;
+          ctx.beginPath();
+          ctx.arc(px2, py2, 4.5, 0, Math.PI * 2);
+          ctx.fillStyle = '#10b981';
+          ctx.shadowColor = '#34d399';
           ctx.shadowBlur = 10;
           ctx.fill();
           ctx.shadowBlur = 0;
         }
-      }
 
-      // 3. Render Nodes
-      const drawNode = (node: { x: number; y: number; label?: string; color: string }, radius = 14) => {
+        // Relay Node Circle
         ctx.beginPath();
-        ctx.arc(node.x, node.y, radius, 0, Math.PI * 2);
-        ctx.fillStyle = '#ffffff';
-        ctx.strokeStyle = node.color;
-        ctx.lineWidth = 4;
-        ctx.shadowColor = node.color;
-        ctx.shadowBlur = 8;
+        ctx.arc(node.x, node.y, 8, 0, Math.PI * 2);
+        ctx.fillStyle = '#8b5cf6';
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
         ctx.fill();
         ctx.stroke();
-        ctx.shadowBlur = 0;
 
-        if (node.label) {
-          ctx.fillStyle = '#0f172a';
-          ctx.font = 'bold 12px Inter, sans-serif';
-          ctx.textAlign = 'center';
-          ctx.fillText(node.label, node.x, node.y + (node.y > height / 2 ? 26 : -22));
-        }
-      };
+        ctx.fillStyle = '#475569';
+        ctx.font = '600 11px system-ui';
+        ctx.textAlign = 'center';
+        ctx.fillText(node.label, node.x, node.y - 14);
+      }
 
-      // Draw Bypass Interneuron Nodes
-      bypassNodes.forEach((bn, idx) => {
-        const isSprouted = strokeOccurred && rehabReps >= (idx + 1) * 3;
-        drawNode({
-          x: bn.x,
-          y: bn.y,
-          color: isSprouted ? '#8b5cf6' : '#cbd5e1'
-        }, isSprouted ? 10 : 7);
-      });
+      // 4. Draw Terminal Nodes (Motor Cortex & Target Muscle)
+      // Motor Cortex Node
+      ctx.beginPath();
+      ctx.arc(motorSoma.x, motorSoma.y, 16, 0, Math.PI * 2);
+      ctx.fillStyle = '#0891b2';
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 3;
+      ctx.fill();
+      ctx.stroke();
 
-      // Draw Main Terminal Nodes
-      drawNode(startNode, 18);
-      drawNode(endNode, 18);
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 12px system-ui';
+      ctx.textAlign = 'center';
+      ctx.fillText('Motor Cortex', motorSoma.x, motorSoma.y + 32);
+      ctx.font = '10px monospace';
+      ctx.fillStyle = '#0891b2';
+      ctx.fillText('(Action Command)', motorSoma.x, motorSoma.y + 45);
+
+      // Target Muscle Node
+      ctx.beginPath();
+      ctx.arc(targetMuscle.x, targetMuscle.y, 16, 0, Math.PI * 2);
+      ctx.fillStyle = recoveryPercent >= 70 ? '#10b981' : '#f59e0b';
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 3;
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 12px system-ui';
+      ctx.textAlign = 'center';
+      ctx.fillText('Hand Muscle', targetMuscle.x, targetMuscle.y + 32);
+      ctx.font = '10px monospace';
+      ctx.fillStyle = '#10b981';
+      ctx.fillText(`(${recoveryPercent}% Synced)`, targetMuscle.x, targetMuscle.y + 45);
 
       animId = requestAnimationFrame(render);
     };
 
     render();
 
-    return () => cancelAnimationFrame(animId);
-  }, [strokeOccurred, rehabReps]);
-
-  const handleTriggerStroke = () => {
-    setStrokeOccurred(true);
-    setRehabReps(0);
-    setIsAutoTraining(false);
-  };
-
-  const handleReset = () => {
-    setStrokeOccurred(false);
-    setRehabReps(0);
-    setIsAutoTraining(false);
-  };
-
-  const handleDoRepetition = () => {
-    if (!strokeOccurred) return;
-    setRehabReps((prev) => Math.min(maxReps, prev + 1));
-  };
+    return () => {
+      cancelAnimationFrame(animId);
+    };
+  }, [strokeOccurred, rehabReps, maxReps, recoveryPercent]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-      {/* Header Banner */}
-      <div className="glass-card" style={{ padding: '32px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-          <span className="badge badge-primary">
-            <Sparkles size={13} /> Synaptic Rewiring Lab
-          </span>
-          <span className="badge badge-synapse">
-            Neuroplasticity
-          </span>
-        </div>
-        <h2 style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '8px' }}>
-          Neuroplasticity & Synaptic Rewiring Playground
-        </h2>
-        <p style={{ color: 'var(--text-muted)', maxWidth: '750px', fontSize: '15px' }}>
-          When a stroke severs the brain's primary motor superhighway, the brain doesn't surrender. Through intensive, high-repetition physical rehabilitation, dormant peri-infarct interneurons sprout new dendritic branches (*synaptogenesis*), creating an entirely new biological bypass circuit.
-        </p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+      {/* Visual Header with Real Biological Asset */}
+      <div 
+        className="glass-card" 
+        style={{ 
+          padding: '0', 
+          overflow: 'hidden',
+          display: 'grid',
+          gridTemplateColumns: 'minmax(320px, 1.25fr) minmax(280px, 0.75fr)',
+          backgroundColor: '#ffffff'
+        }}
+      >
+        <div style={{ padding: '36px 36px 32px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+            <span className="badge badge-primary">
+              <Dna size={13} /> Synaptogenesis Simulator
+            </span>
+            <span className="badge badge-synapse">
+              <Sparkles size={13} /> Hebbian Plasticity
+            </span>
+            <span className="badge badge-success">
+              {recoveryPercent}% Circuit Re-established
+            </span>
+          </div>
 
-        {/* Action Controls */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginTop: '24px' }}>
-          {!strokeOccurred ? (
-            <button onClick={handleTriggerStroke} className="btn btn-danger">
-              <Zap size={16} /> Simulate Stroke Incident
+          <h1 style={{ fontSize: '32px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '12px', letterSpacing: '-0.02em' }}>
+            Neuroplasticity & Synaptic Rewiring Lab
+          </h1>
+          
+          <p style={{ color: 'var(--text-muted)', fontSize: '15px', lineHeight: 1.6, marginBottom: '24px' }}>
+            When a stroke destroys primary motor pathways, the brain does not grow new cerebral lobes. Instead, through <strong>Hebbian learning</strong> ("neurons that fire together, wire together"), surviving peri-infarct cortical zones sprout new dendritic collateral spines to bridge around the dead tissue.
+          </p>
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+            <button
+              onClick={() => {
+                setRehabReps((r) => Math.min(maxReps, r + 1));
+              }}
+              className="btn btn-primary"
+            >
+              <Zap size={16} /> Execute Motor Rehab Rep (+1)
             </button>
-          ) : (
-            <>
-              <button 
-                onClick={handleDoRepetition} 
-                className="btn btn-primary btn-lg"
-                disabled={rehabReps >= maxReps}
-                style={{
-                  transform: 'scale(1)',
-                  boxShadow: '0 4px 18px rgba(139, 92, 246, 0.35)',
-                  background: 'linear-gradient(135deg, #7c3aed, #8b5cf6)'
-                }}
-              >
-                <Sparkles size={18} /> Perform Rehab Repetition (+1)
-              </button>
 
-              <button 
-                onClick={() => setIsAutoTraining(!isAutoTraining)} 
-                className="btn btn-secondary"
-                disabled={rehabReps >= maxReps}
-              >
-                <Play size={16} /> {isAutoTraining ? 'Pause Auto Training' : 'Auto-Train Series'}
-              </button>
+            <button
+              onClick={() => setIsAutoTraining(!isAutoTraining)}
+              className={`btn ${isAutoTraining ? 'btn-danger' : 'btn-secondary'}`}
+            >
+              <Play size={16} /> {isAutoTraining ? 'Pause Auto-Rehab' : 'Start Intensive Training'}
+            </button>
 
-              <button onClick={handleReset} className="btn btn-secondary">
-                <RefreshCw size={16} /> Reset Simulation
-              </button>
-            </>
-          )}
+            <button
+              onClick={() => {
+                setStrokeOccurred(true);
+                setRehabReps(0);
+                setIsAutoTraining(false);
+              }}
+              className="btn btn-secondary"
+            >
+              <RefreshCw size={15} /> Reset Lesion
+            </button>
+          </div>
+        </div>
+
+        {/* Photorealistic 3D Biological Synapse Sprouting Asset Visual */}
+        <div style={{ position: 'relative', minHeight: '260px', overflow: 'hidden' }}>
+          <img 
+            src="/assets/synapse_rewiring_cortex.jpg" 
+            alt="Biological Synapse Sprouting and Dendritic Axonal Rewiring" 
+            style={{ 
+              width: '100%', 
+              height: '100%', 
+              objectFit: 'cover',
+              objectPosition: 'center'
+            }} 
+          />
+          <div style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            padding: '16px 20px',
+            background: 'linear-gradient(to top, rgba(15, 23, 42, 0.92) 0%, rgba(15, 23, 42, 0) 100%)',
+            color: '#ffffff'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 700 }}>
+              <span className="pulse-active" style={{ backgroundColor: '#8b5cf6' }}></span>
+              Collateral Axonal Sprouting & Synaptic Remodeling
+            </div>
+            <p style={{ fontSize: '11px', color: '#cbd5e1', marginTop: '2px' }}>
+              BDNF-mediated structural plasticity bridging around ischemic core
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Main Simulation Viewport */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.8fr) minmax(320px, 1fr)', gap: '24px' }}>
-        {/* Canvas Area */}
-        <div className="glass-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
-            <div>
-              <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)' }}>
-                Circuit Connectivity:
-              </span>
-              <div style={{ fontSize: '24px', fontWeight: 800, color: recoveryPercent > 70 ? 'var(--success-600)' : (recoveryPercent > 20 ? 'var(--synapse-600)' : 'var(--danger-500)'), fontFamily: 'var(--font-mono)' }}>
-                {recoveryPercent}% Signal Transmission
-              </div>
-            </div>
+      {/* Biological Metrics HUD Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
+        <div className="glass-card" style={{ padding: '22px', borderLeft: '4px solid #8b5cf6' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+              BDNF Plasma Level
+            </span>
+            <Activity size={18} color="#8b5cf6" />
+          </div>
+          <div style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)', fontFamily: 'var(--font-mono)' }}>
+            {bdnfLevel} ng/mL
+          </div>
+          <span style={{ fontSize: '11.5px', color: '#6d28d9', fontWeight: 600 }}>
+            Brain-Derived Neurotrophic Factor
+          </span>
+        </div>
 
-            {strokeOccurred && (
-              <div style={{
-                backgroundColor: 'var(--synapse-50)',
-                border: '1px solid var(--synapse-100)',
-                padding: '8px 16px',
-                borderRadius: 'var(--radius-full)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}>
-                <Sparkles size={16} color="var(--synapse-600)" />
-                <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--synapse-600)' }}>
-                  Rehab Reps: {rehabReps} / {maxReps}
-                </span>
-              </div>
-            )}
+        <div className="glass-card" style={{ padding: '22px', borderLeft: '4px solid #10b981' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+              Synaptic Density
+            </span>
+            <TrendingUp size={18} color="#10b981" />
+          </div>
+          <div style={{ fontSize: '28px', fontWeight: 800, color: '#059669', fontFamily: 'var(--font-mono)' }}>
+            {synapticDensity}%
+          </div>
+          <span style={{ fontSize: '11.5px', color: '#15803d', fontWeight: 600 }}>
+            Dendritic spine regeneration
+          </span>
+        </div>
+
+        <div className="glass-card" style={{ padding: '22px', borderLeft: '4px solid #0891b2' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+              Fugl-Meyer Motor
+            </span>
+            <Award size={18} color="#0891b2" />
+          </div>
+          <div style={{ fontSize: '28px', fontWeight: 800, color: '#0e7490', fontFamily: 'var(--font-mono)' }}>
+            +{functionalScore} pts
+          </div>
+          <span style={{ fontSize: '11.5px', color: '#0e7490', fontWeight: 600 }}>
+            Upper extremity kinematic gain
+          </span>
+        </div>
+
+        <div className="glass-card" style={{ padding: '22px', borderLeft: '4px solid #f59e0b' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+              Rehab Repetitions
+            </span>
+            <Zap size={18} color="#f59e0b" />
+          </div>
+          <div style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)', fontFamily: 'var(--font-mono)' }}>
+            {rehabReps} / {maxReps}
+          </div>
+          <span style={{ fontSize: '11.5px', color: '#b45309', fontWeight: 600 }}>
+            Daily target threshold
+          </span>
+        </div>
+      </div>
+
+      {/* Main Interactive Synaptogenesis Rewiring Canvas */}
+      <div className="glass-card" style={{ padding: '28px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '16px', marginBottom: '20px' }}>
+          <div>
+            <h3 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-main)' }}>
+              Interactive Peri-Infarct Axonal Sprouting Stage
+            </h3>
+            <p style={{ fontSize: '13.5px', color: 'var(--text-muted)' }}>
+              Watch fine collateral axon branches physically bypass the infarcted necrotic core as training repetitions accumulate.
+            </p>
           </div>
 
-          {/* Interactive Canvas */}
-          <div style={{
-            width: '100%',
-            height: '380px',
-            backgroundColor: '#ffffff',
-            borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--border-light)',
-            overflow: 'hidden',
-            boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.02)'
-          }}>
-            <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />
-          </div>
-
-          {/* Educational Stage Tracker */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
-            gap: '8px',
-            marginTop: '8px',
-            textAlign: 'center'
-          }}>
-            <div style={{
-              padding: '8px',
-              borderRadius: 'var(--radius-sm)',
-              backgroundColor: strokeOccurred && rehabReps >= 1 ? 'var(--synapse-50)' : 'var(--bg-muted)',
-              border: strokeOccurred && rehabReps >= 1 ? '1px solid var(--synapse-200)' : '1px solid transparent'
-            }}>
-              <span style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Stage 1</span>
-              <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-main)' }}>Axonal Sprouting</div>
-            </div>
-
-            <div style={{
-              padding: '8px',
-              borderRadius: 'var(--radius-sm)',
-              backgroundColor: strokeOccurred && rehabReps >= 6 ? 'var(--synapse-50)' : 'var(--bg-muted)',
-              border: strokeOccurred && rehabReps >= 6 ? '1px solid var(--synapse-200)' : '1px solid transparent'
-            }}>
-              <span style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Stage 2</span>
-              <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-main)' }}>Synaptogenesis</div>
-            </div>
-
-            <div style={{
-              padding: '8px',
-              borderRadius: 'var(--radius-sm)',
-              backgroundColor: strokeOccurred && rehabReps >= 12 ? 'var(--synapse-50)' : 'var(--bg-muted)',
-              border: strokeOccurred && rehabReps >= 12 ? '1px solid var(--synapse-200)' : '1px solid transparent'
-            }}>
-              <span style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Stage 3</span>
-              <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-main)' }}>Myelination</div>
-            </div>
-
-            <div style={{
-              padding: '8px',
-              borderRadius: 'var(--radius-sm)',
-              backgroundColor: strokeOccurred && rehabReps >= 18 ? 'var(--success-50)' : 'var(--bg-muted)',
-              border: strokeOccurred && rehabReps >= 18 ? '1px solid var(--success-200)' : '1px solid transparent'
-            }}>
-              <span style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Stage 4</span>
-              <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--success-600)' }}>Full Consolidation</div>
-            </div>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              onClick={() => setActiveStrategy('cimt')}
+              className={`btn btn-sm ${activeStrategy === 'cimt' ? 'btn-primary' : 'btn-secondary'}`}
+            >
+              CIMT (Forced-Use)
+            </button>
+            <button
+              onClick={() => setActiveStrategy('mirror')}
+              className={`btn btn-sm ${activeStrategy === 'mirror' ? 'btn-primary' : 'btn-secondary'}`}
+            >
+              Mirror Therapy
+            </button>
+            <button
+              onClick={() => setActiveStrategy('aerobic')}
+              className={`btn btn-sm ${activeStrategy === 'aerobic' ? 'btn-primary' : 'btn-secondary'}`}
+            >
+              Aerobic Priming
+            </button>
           </div>
         </div>
 
-        {/* Right: Scientific Principles & Encouragement */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <div className="glass-card" style={{ padding: '24px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-              <BookOpen size={18} color="var(--primary-600)" />
-              <h4 style={{ fontSize: '16px', fontWeight: 700 }}>The Science of Recovery</h4>
-            </div>
+        {/* Canvas Display */}
+        <div style={{
+          width: '100%',
+          backgroundColor: '#ffffff',
+          borderRadius: 'var(--radius-lg)',
+          border: '1px solid var(--border-light)',
+          boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.04)',
+          overflow: 'hidden',
+          position: 'relative'
+        }}>
+          <canvas ref={canvasRef} style={{ width: '100%', display: 'block' }} />
+        </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '13px', color: 'var(--text-body)', lineHeight: 1.6 }}>
-              <p>
-                <strong>Hebbian Plasticity:</strong> <em>"Neurons that fire together, wire together."</em> In the first 3 to 6 months post-stroke, the brain is in a hyper-plastic state where protein growth factors like BDNF (Brain-Derived Neurotrophic Factor) peak.
-              </p>
-              <p>
-                <strong>The Power of High Repetitions:</strong> Clinical trials show that 300 to 400 task-specific repetitions per day are required to recruit and consolidate new cortical territory for hand and arm movement.
-              </p>
-            </div>
+        {/* Evidence-Based Neuroplasticity Guidelines */}
+        <div style={{
+          marginTop: '24px',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gap: '16px'
+        }}>
+          <div style={{
+            padding: '16px',
+            backgroundColor: 'var(--bg-muted)',
+            borderRadius: 'var(--radius-md)',
+            borderLeft: '3px solid #8b5cf6'
+          }}>
+            <h5 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>
+              1. High-Dose Repetitive Practice
+            </h5>
+            <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+              Animal and clinical trials show motor reorganization requires hundreds of goal-directed reach-and-grasp repetitions daily to stabilize new synaptogenesis.
+            </p>
           </div>
 
-          <div className="glass-card" style={{ padding: '20px', backgroundColor: 'var(--primary-50)', borderColor: 'var(--primary-100)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-              <Award size={18} color="var(--primary-700)" />
-              <h4 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--primary-800)' }}>
-                Patience & Perseverance
-              </h4>
-            </div>
-            <p style={{ fontSize: '12.5px', color: 'var(--primary-900)', lineHeight: 1.5 }}>
-              Synaptic rewiring is invisible on a day-to-day basis, but exponential over weeks. Even when a limb feels completely motionless, mental motor imagery and assisted passive movements signal the brain that the pathway is still needed.
+          <div style={{
+            padding: '16px',
+            backgroundColor: 'var(--bg-muted)',
+            borderRadius: 'var(--radius-md)',
+            borderLeft: '3px solid #0891b2'
+          }}>
+            <h5 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>
+              2. Salience & Task Meaningfulness
+            </h5>
+            <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+              Mindless movement produces minimal cortical shift. Tasks must be motivating, functional (e.g. drinking, eating, writing), and progressively challenging.
+            </p>
+          </div>
+
+          <div style={{
+            padding: '16px',
+            backgroundColor: 'var(--bg-muted)',
+            borderRadius: 'var(--radius-md)',
+            borderLeft: '3px solid #10b981'
+          }}>
+            <h5 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>
+              3. Overcoming "Learned Non-Use"
+            </h5>
+            <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+              Constraint-Induced Movement Therapy (CIMT) restrains the intact limb to force activation of the weakened stroke limb, re-awakening silent synapses.
             </p>
           </div>
         </div>
