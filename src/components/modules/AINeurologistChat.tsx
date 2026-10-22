@@ -37,14 +37,8 @@ export const AINeurologistChat: React.FC = () => {
   const [contextBP, setContextBP] = useState<string>('168/94 (Elevated)');
   const [contextNIHSS, setContextNIHSS] = useState<string>('NIHSS 14 (Moderate)');
 
-  const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  // Auto-scroll chat
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isStreaming]);
 
   // -------------------------------------------------------------
   // Living Synaptic Core Waveform Canvas (Header)
@@ -762,7 +756,6 @@ ${text}
             </div>
           );
         })}
-        <div ref={chatEndRef} />
       </div>
 
       {/* 4. Pinned Bottom Input Dock (Always Visible!) */}
