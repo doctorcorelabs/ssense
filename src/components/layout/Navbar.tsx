@@ -1,7 +1,5 @@
 import { 
   Brain, 
-  Settings2,
-  Wifi,
   ShieldAlert
 } from 'lucide-react';
 import type { ActiveTab } from '../../types/stroke';
@@ -9,16 +7,15 @@ import type { ActiveTab } from '../../types/stroke';
 interface NavbarProps {
   activeTab: ActiveTab;
   setActiveTab: (tab: ActiveTab) => void;
-  onOpenSettings: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ activeTab: _activeTab, setActiveTab, onOpenSettings }) => {
+export const Navbar: React.FC<NavbarProps> = ({ activeTab: _activeTab, setActiveTab }) => {
   return (
     <header style={{
       position: 'sticky',
       top: 0,
       zIndex: 80,
-      backgroundColor: 'rgba(255, 255, 255, 0.94)',
+      backgroundColor: 'var(--glass-surface)',
       backdropFilter: 'blur(16px)',
       WebkitBackdropFilter: 'blur(16px)',
       borderBottom: '1px solid var(--glass-border)',
@@ -97,36 +94,17 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab: _activeTab, setActive
           </button>
         </div>
 
-        {/* Right Utility & Config */}
+        {/* Right Utility: Clean Space / Active Indicator */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {/* Cloudflare Edge status pill */}
-          <div style={{
-            display: 'none',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '4px 10px',
-            borderRadius: 'var(--radius-full)',
-            backgroundColor: 'var(--bg-surface-sub)',
-            border: '1px solid var(--glass-border)',
+          <span style={{
             fontSize: '11px',
+            fontWeight: 600,
             color: 'var(--text-muted)',
-            fontFamily: 'var(--font-mono)'
-          }}
-          className="md-flex"
-          >
-            <Wifi size={11} color="var(--green-600)" />
-            <span>CF Edge Active</span>
-          </div>
-
-          {/* Config Settings Button */}
-          <button
-            onClick={onOpenSettings}
-            className="btn btn-secondary btn-sm"
-            title="Edge Telemetry & AI Model Settings"
-          >
-            <Settings2 size={14} color="var(--text-secondary)" />
-            <span>Config</span>
-          </button>
+            fontFamily: 'var(--font-mono)',
+            letterSpacing: '0.02em'
+          }}>
+            v2.6 • 2026 Guidelines
+          </span>
         </div>
       </div>
     </header>

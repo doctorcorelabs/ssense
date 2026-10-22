@@ -26,7 +26,6 @@ export const App: React.FC = () => {
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        onOpenSettings={() => setIsConfigOpen(true)}
       />
 
       {/* Living Hemodynamic Telemetry, Saver JL Time-is-Brain & Cath Lab Switcher Ribbon */}
