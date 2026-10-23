@@ -13,10 +13,15 @@ import {
   ShieldCheck
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { useResponsive, useMediaQuery } from '../../hooks/useResponsive';
 
 type EVTStep = 'approach' | 'cross' | 'deploy' | 'extract' | 'reperfusion';
 
 export const VirtualEVTSimulator: React.FC = () => {
+  const { isMobile } = useResponsive();
+  const stackLayout = useMediaQuery('(max-width: 1024px)');
+  // Responsive stage height: phone ~340px, tablet / narrow window ~420px, desktop 520px.
+  const stageHeight = isMobile ? 340 : stackLayout ? 420 : 520;
   const mountRef = useRef<HTMLDivElement>(null);
   const [currentStep, setCurrentStep] = useState<EVTStep>('approach');
   const [catheterProgress, setCatheterProgress] = useState<number>(0.25); // 0 to 1 along arterial path
@@ -122,7 +127,11 @@ export const VirtualEVTSimulator: React.FC = () => {
     if (!container) return;
 
     const width = container.clientWidth;
-    const height = 520;
+    const getStageHeight = () => {
+      const vw = typeof window !== 'undefined' ? window.innerWidth : 1280;
+      return vw <= 640 ? 340 : vw <= 1024 ? 420 : 520;
+    };
+    let height = getStageHeight();
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color('#030712'); // Darkroom Fluoroscopy background
@@ -141,6 +150,18 @@ export const VirtualEVTSimulator: React.FC = () => {
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
     controls.target.set(-5, 0, 1.5); // Center on M1 clot site
+
+    // Follow container size on rotation / window resize (pattern from Brain3DExplorer).
+    const onResize = () => {
+      const newW = container.clientWidth;
+      if (!newW) return;
+      const newH = getStageHeight();
+      height = newH;
+      camera.aspect = newW / newH;
+      camera.updateProjectionMatrix();
+      renderer.setSize(newW, newH);
+    };
+    window.addEventListener('resize', onResize);
 
     // Lighting
     const ambLight = new THREE.AmbientLight(0x0284c7, 0.4);
@@ -329,6 +350,7 @@ export const VirtualEVTSimulator: React.FC = () => {
 
     return () => {
       cancelAnimationFrame(animId);
+      window.removeEventListener('resize', onResize);
       controls.dispose();
       renderer.dispose();
     };
@@ -340,7 +362,7 @@ export const VirtualEVTSimulator: React.FC = () => {
       <div className="glass-card" style={{ padding: '28px 32px' }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '20px' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px', flexWrap: 'wrap' }}>
               <span className="badge badge-primary">
                 <Zap size={13} /> Interventional Neuro-Radiology Suite
               </span>
@@ -372,7 +394,7 @@ export const VirtualEVTSimulator: React.FC = () => {
         {/* Step-by-Step Clinical Procedure Stepper */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
+          gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
           gap: '12px',
           marginTop: '24px'
         }}>
@@ -453,7 +475,7 @@ export const VirtualEVTSimulator: React.FC = () => {
       {/* Main 3D Viewport & Interventional Controls Grid */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'minmax(460px, 1.5fr) minmax(340px, 1fr)',
+        gridTemplateColumns: stackLayout ? 'minmax(0, 1fr)' : 'minmax(460px, 1.5fr) minmax(340px, 1fr)',
         gap: '24px'
       }}>
         {/* 3D Angiography C-Arm Viewport Card */}
@@ -463,6 +485,8 @@ export const VirtualEVTSimulator: React.FC = () => {
             backgroundColor: '#090d16',
             borderBottom: '1px solid #1e293b',
             display: 'flex',
+            flexWrap: 'wrap',
+            gap: '6px 12px',
             alignItems: 'center',
             justifyContent: 'space-between'
           }}>
@@ -482,7 +506,8 @@ export const VirtualEVTSimulator: React.FC = () => {
             ref={mountRef}
             style={{
               width: '100%',
-              height: '520px',
+              maxWidth: '100%',
+              height: `${stageHeight}px`,
               position: 'relative',
               cursor: 'grab',
               backgroundColor: '#030712'
@@ -519,7 +544,7 @@ export const VirtualEVTSimulator: React.FC = () => {
                 {ticiScore === 'TICI 3' ? 'Patent MCA' : 'Ischemic M2/M3'}
               </span>
             </div>
-            <span>Orbit with mouse • Zoom with wheel</span>
+            <span>{isMobile ? 'Drag to orbit - Pinch to zoom' : 'Orbit with mouse • Zoom with wheel'}</span>
           </div>
         </div>
 
@@ -643,7 +668,7 @@ export const VirtualEVTSimulator: React.FC = () => {
                 <div style={{ fontSize: '18px', fontWeight: 800, color: ticiScore === 'TICI 3' ? '#059669' : '#dc2626', fontFamily: 'var(--font-mono)' }}>
                   {ticiScore}
                 </div>
-                <span style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>
+                <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>
                   {ticiScore === 'TICI 3' ? '100% Full Territory' : '0% Complete Occlusion'}
                 </span>
               </div>
@@ -653,7 +678,7 @@ export const VirtualEVTSimulator: React.FC = () => {
                 <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
                   {doorToPunctureMins} mins
                 </div>
-                <span style={{ fontSize: '10.5px', color: '#15803d', fontWeight: 600 }}>
+                <span style={{ fontSize: '11.5px', color: '#15803d', fontWeight: 600 }}>
                   Optimal Target (&lt; 60m)
                 </span>
               </div>

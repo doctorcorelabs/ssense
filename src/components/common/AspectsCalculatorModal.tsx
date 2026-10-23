@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Layers, Info } from 'lucide-react';
+import { useResponsive } from '../../hooks/useResponsive';
 
 interface AspectsCalculatorModalProps {
   isOpen: boolean;
@@ -27,6 +28,17 @@ export const AspectsCalculatorModal: React.FC<AspectsCalculatorModalProps> = ({ 
     { id: 'M5', name: 'M5 Cortex', category: 'supraganglionic', description: 'Lateral MCA territory immediately superior to M2', normal: true },
     { id: 'M6', name: 'M6 Cortex', category: 'supraganglionic', description: 'Posterior MCA territory immediately superior to M3', normal: true }
   ]);
+
+  const { isMobile, isShortScreen } = useResponsive();
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -70,24 +82,34 @@ export const AspectsCalculatorModal: React.FC<AspectsCalculatorModalProps> = ({ 
   const interpretation = getClinicalInterpretation();
 
   return (
-    <div style={{
+    <div
+      onClick={onClose}
+      style={{
       position: 'fixed',
       inset: 0,
       backgroundColor: 'rgba(7, 11, 20, 0.65)',
       backdropFilter: 'blur(8px)',
       WebkitBackdropFilter: 'blur(8px)',
       display: 'flex',
-      alignItems: 'center',
+      alignItems: isShortScreen ? 'flex-start' : 'center',
       justifyContent: 'center',
       zIndex: 1000,
-      padding: '20px'
+      padding: isMobile
+        ? 'max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left))'
+        : '20px',
+      overflowY: 'auto'
     }}>
-      <div className="glass-card" style={{
+      <div
+        className="glass-card"
+        role="dialog"
+        aria-modal="true"
+        onClick={(e) => e.stopPropagation()}
+        style={{
         maxWidth: '820px',
         width: '100%',
-        maxHeight: '90vh',
+        maxHeight: '90dvh',
         overflowY: 'auto',
-        padding: '28px 32px',
+        padding: isMobile ? '20px 18px' : '28px 32px',
         borderRadius: 'var(--radius-xl)',
         position: 'relative',
         backgroundColor: 'var(--bg-surface)',
@@ -97,7 +119,7 @@ export const AspectsCalculatorModal: React.FC<AspectsCalculatorModalProps> = ({ 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', marginBottom: '20px' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', flexWrap: 'wrap' }}>
               <span className="badge badge-primary">
                 <Layers size={13} /> Alberta Stroke Program Early CT Score
               </span>
@@ -115,14 +137,22 @@ export const AspectsCalculatorModal: React.FC<AspectsCalculatorModalProps> = ({ 
 
           <button
             onClick={onClose}
+            aria-label="Close"
             style={{
               background: 'none',
               border: 'none',
               cursor: 'pointer',
               color: 'var(--text-muted)',
-              padding: '6px',
+              padding: '10px',
+              width: '40px',
+              height: '40px',
+              minWidth: '40px',
+              minHeight: '40px',
               borderRadius: 'var(--radius-sm)',
-              display: 'flex'
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0
             }}
           >
             <X size={20} />
@@ -132,16 +162,16 @@ export const AspectsCalculatorModal: React.FC<AspectsCalculatorModalProps> = ({ 
         {/* Top Score Telemetry Banner */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: '160px 1fr',
-          gap: '20px',
-          padding: '18px 22px',
+          gridTemplateColumns: isMobile ? '1fr' : '160px 1fr',
+          gap: isMobile ? '12px' : '20px',
+          padding: isMobile ? '16px' : '18px 22px',
           backgroundColor: 'var(--bg-surface-sub)',
           borderRadius: 'var(--radius-lg)',
           border: '1px solid var(--glass-border)',
           alignItems: 'center',
           marginBottom: '24px'
         }}>
-          <div style={{ textAlign: 'center', borderRight: '1px solid var(--glass-border)', paddingRight: '16px' }}>
+          <div style={{ textAlign: 'center', borderRight: isMobile ? 'none' : '1px solid var(--glass-border)', borderBottom: isMobile ? '1px solid var(--glass-border)' : 'none', paddingRight: isMobile ? '0' : '16px', paddingBottom: isMobile ? '12px' : '0' }}>
             <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
               Computed Score
             </span>
@@ -174,7 +204,7 @@ export const AspectsCalculatorModal: React.FC<AspectsCalculatorModalProps> = ({ 
         </div>
 
         {/* Interactive Zone Switchboard */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px', marginBottom: '24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: isMobile ? '16px' : '20px', marginBottom: '24px' }}>
           {/* Ganglionic Level (Axial Slice 1) */}
           <div style={{
             padding: '16px',
@@ -339,8 +369,10 @@ export const AspectsCalculatorModal: React.FC<AspectsCalculatorModalProps> = ({ 
         {/* Footer Note */}
         <div style={{
           display: 'flex',
-          alignItems: 'center',
+          flexDirection: isMobile ? 'column' : 'row',
+          alignItems: isMobile ? 'stretch' : 'center',
           justifyContent: 'space-between',
+          gap: isMobile ? '12px' : undefined,
           paddingTop: '16px',
           borderTop: '1px solid var(--glass-border)',
           fontSize: '12px',

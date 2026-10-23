@@ -461,3 +461,129 @@ button:focus-visible, input:focus-visible, a:focus-visible {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ==========================================================================
+   Responsive Foundation (added 2026-10-24)
+   Breakpoints mirror src/hooks/useResponsive.ts:
+   400 small phone / 640 phone / 900 tablet portrait / 1180 iPad / 1280 desktop
+   ========================================================================== */
+
+/* Missing badge tokens referenced by .badge-* rules above */
+:root {
+  --red-200: #FECDD3;
+  --amber-200: #FDE68A;
+  --amber-700: #B45309;
+  --green-200: #A7F3D0;
+  --green-700: #047857;
+  --violet-200: #DDD6FE;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  overflow-x: clip;
+}
+
+body {
+  overflow-x: clip;
+}
+
+/* Media elements never push the page wider than the viewport */
+img, video, canvas {
+  max-width: 100%;
+}
+
+/* iOS Safari renders background-attachment: fixed poorly - disable on touch */
+@media (hover: none) {
+  body { background-attachment: scroll; }
+}
+
+/* ── Container breathing room ─────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .container { padding: 0 16px; }
+  html, body { font-size: 14px; }
+}
+@media (max-width: 380px) {
+  .container { padding: 0 12px; }
+}
+
+/* ── Command dock: always fits, scrolls internally, respects notch ────── */
+.command-dock {
+  max-width: calc(100vw - 24px);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.command-dock::-webkit-scrollbar { display: none; }
+@media (max-width: 640px) {
+  .command-dock {
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    max-width: calc(100vw - 16px);
+    padding: 5px 6px;
+  }
+}
+
+/* ── Touch targets & iOS zoom prevention ──────────────────────────────── */
+@media (pointer: coarse) {
+  .btn { min-height: 44px; }
+  .btn-sm { min-height: 40px; padding: 8px 14px; }
+  .badge { min-height: 24px; }
+  input[type="range"] { min-height: 36px; }
+}
+@media (max-width: 640px) {
+  /* iOS Safari auto-zooms focused fields below 16px */
+  input, select, textarea { font-size: 16px !important; }
+  input[type="range"] { font-size: inherit !important; }
+}
+
+/* Larger, grabbable slider thumbs */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--bg-active);
+  outline-offset: 4px;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--blue-600);
+  border: 3px solid #FFFFFF;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.3);
+  cursor: pointer;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--blue-600);
+  border: 3px solid #FFFFFF;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.3);
+  cursor: pointer;
+}
+
+/* ── Visibility helpers for layout components ─────────────────────────── */
+@media (max-width: 640px) {
+  .hide-on-mobile { display: none !important; }
+}
+@media (min-width: 641px) and (max-width: 1180px) {
+  .hide-on-tablet { display: none !important; }
+}
+@media (max-width: 1180px) {
+  .hide-on-tablet-down { display: none !important; }
+}
+
+/* Long words / URLs / code never force horizontal scroll inside cards */
+.glass-card, .bento-tile {
+  overflow-wrap: break-word;
+}
+
+/* Tables inside chat / cards scroll horizontally instead of crushing */
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}

@@ -28,6 +28,7 @@ import {
   CLINICAL_VESSEL_DATA,
   buildVascularNetwork
 } from '../../utils/brain3D/vascularData';
+import { useResponsive, useMediaQuery } from '../../hooks/useResponsive';
 
 type ViewMode = 'tissue' | 'dsa' | 'perfusion' | 'homunculus';
 type CameraPreset = 'default' | 'circle-of-willis' | 'left-sylvian' | 'right-sylvian' | 'aca' | 'pca';
@@ -47,6 +48,12 @@ export const Brain3DExplorer: React.FC = () => {
   const [sliceLevel, setSliceLevel] = useState<number>(14); // 14 = full brain, lower cuts down
   const [hoveredVesselName, setHoveredVesselName] = useState<string | null>(null);
   const [cameraPreset, setCameraPreset] = useState<CameraPreset>('default');
+
+  const { isMobile, isTabletPortrait, isTablet } = useResponsive();
+  const isCoarsePointer = useMediaQuery('(pointer: coarse)');
+  // Responsive canvas height: desktop 580, tablet ~460, mobile clamped in 320-380 range
+  const canvasHeight = isMobile ? 340 : isTablet ? 460 : 580;
+  const showTouchHint = isMobile || isCoarsePointer;
 
   const activeInfo = CLINICAL_VESSEL_DATA[selectedVessel](strokeType);
 
@@ -216,7 +223,7 @@ export const Brain3DExplorer: React.FC = () => {
     if (!container) return;
 
     const width = container.clientWidth;
-    const height = 580;
+    const height = container.clientHeight || canvasHeight;
 
     // 1. Scene & Renderer setup
     const scene = new THREE.Scene();
@@ -639,21 +646,30 @@ export const Brain3DExplorer: React.FC = () => {
 
     animate();
 
-    // Resize handling
+    // Resize handling: read actual container size so CSS-driven height stays in sync
     const onResize = () => {
       if (!container) return;
       const newW = container.clientWidth;
-      camera.aspect = newW / height;
+      const newH = container.clientHeight || canvasHeight;
+      if (!newW || !newH) return;
+      camera.aspect = newW / newH;
       camera.updateProjectionMatrix();
-      renderer.setSize(newW, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(newW, newH);
     };
     window.addEventListener('resize', onResize);
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(() => onResize());
+      resizeObserver.observe(container);
+    }
 
     return () => {
       cancelAnimationFrame(animFrameId);
       domEl.removeEventListener('mousemove', onPointerMove);
       domEl.removeEventListener('mousedown', onPointerDown);
       window.removeEventListener('resize', onResize);
+      resizeObserver?.disconnect();
       controls.dispose();
       renderer.dispose();
     };
@@ -665,7 +681,7 @@ export const Brain3DExplorer: React.FC = () => {
       <div className="glass-card" style={{ padding: '28px 32px' }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '20px' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
               <span className="badge badge-primary">
                 <Brain size={13} /> High-Precision Neuroanatomy Engine
               </span>
@@ -687,6 +703,7 @@ export const Brain3DExplorer: React.FC = () => {
           {/* Stroke Pathology Selector Toggle */}
           <div style={{
             display: 'flex',
+            flexWrap: 'wrap',
             backgroundColor: 'var(--bg-raised)',
             padding: '4px',
             borderRadius: 'var(--radius-lg)',
@@ -727,8 +744,8 @@ export const Brain3DExplorer: React.FC = () => {
       {/* Main 3D Viewport Station & Diagnostic Intelligence Grid */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'minmax(480px, 1.5fr) minmax(340px, 1fr)',
-        gap: '24px'
+        gridTemplateColumns: isTabletPortrait ? '1fr' : 'minmax(480px, 1.5fr) minmax(340px, 1fr)',
+        gap: isTabletPortrait ? '16px' : '24px'
       }}>
         {/* 3D Viewport Station Card */}
         <div className="glass-card" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
@@ -758,7 +775,7 @@ export const Brain3DExplorer: React.FC = () => {
             </div>
 
             {/* Diagnostic Mode Buttons */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px' }}>
               <button
                 onClick={() => setViewMode('tissue')}
                 className={`btn btn-sm ${viewMode === 'tissue' ? 'btn-primary' : 'btn-secondary'}`}
@@ -801,49 +818,49 @@ export const Brain3DExplorer: React.FC = () => {
             fontSize: '12px'
           }}>
             {/* Camera Presets Bar */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px' }}>
               <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <Compass size={12} /> View:
               </span>
               <button
                 onClick={() => applyCameraPreset('default')}
                 className={`btn btn-sm ${cameraPreset === 'default' ? 'btn-primary' : 'btn-secondary'}`}
-                style={{ fontSize: '11px', padding: '3px 8px' }}
+                style={{ fontSize: '11.5px', padding: '9px 10px', minHeight: '36px' }}
               >
                 Default
               </button>
               <button
                 onClick={() => applyCameraPreset('circle-of-willis')}
                 className={`btn btn-sm ${cameraPreset === 'circle-of-willis' ? 'btn-primary' : 'btn-secondary'}`}
-                style={{ fontSize: '11px', padding: '3px 8px' }}
+                style={{ fontSize: '11.5px', padding: '9px 10px', minHeight: '36px' }}
               >
                 Circle of Willis
               </button>
               <button
                 onClick={() => applyCameraPreset('left-sylvian')}
                 className={`btn btn-sm ${cameraPreset === 'left-sylvian' ? 'btn-primary' : 'btn-secondary'}`}
-                style={{ fontSize: '11px', padding: '3px 8px' }}
+                style={{ fontSize: '11.5px', padding: '9px 10px', minHeight: '36px' }}
               >
                 Left MCA
               </button>
               <button
                 onClick={() => applyCameraPreset('right-sylvian')}
                 className={`btn btn-sm ${cameraPreset === 'right-sylvian' ? 'btn-primary' : 'btn-secondary'}`}
-                style={{ fontSize: '11px', padding: '3px 8px' }}
+                style={{ fontSize: '11.5px', padding: '9px 10px', minHeight: '36px' }}
               >
                 Right MCA
               </button>
               <button
                 onClick={() => applyCameraPreset('aca')}
                 className={`btn btn-sm ${cameraPreset === 'aca' ? 'btn-primary' : 'btn-secondary'}`}
-                style={{ fontSize: '11px', padding: '3px 8px' }}
+                style={{ fontSize: '11.5px', padding: '9px 10px', minHeight: '36px' }}
               >
                 ACA
               </button>
               <button
                 onClick={() => applyCameraPreset('pca')}
                 className={`btn btn-sm ${cameraPreset === 'pca' ? 'btn-primary' : 'btn-secondary'}`}
-                style={{ fontSize: '11px', padding: '3px 8px' }}
+                style={{ fontSize: '11.5px', padding: '9px 10px', minHeight: '36px' }}
               >
                 PCA
               </button>
@@ -853,7 +870,7 @@ export const Brain3DExplorer: React.FC = () => {
             <button
               onClick={() => setIsRotating(!isRotating)}
               className="btn btn-sm btn-secondary"
-              style={{ fontSize: '11px', padding: '3px 8px' }}
+              style={{ fontSize: '11.5px', padding: '9px 10px', minHeight: '36px' }}
             >
               <RotateCcw size={12} /> {isRotating ? 'Pause Orbit' : 'Auto Rotate'}
             </button>
@@ -864,7 +881,7 @@ export const Brain3DExplorer: React.FC = () => {
             ref={mountRef}
             style={{
               width: '100%',
-              height: '580px',
+              height: `${canvasHeight}px`,
               position: 'relative',
               cursor: 'grab',
               backgroundColor: viewMode === 'dsa' ? '#030712' : '#ffffff'
@@ -883,7 +900,7 @@ export const Brain3DExplorer: React.FC = () => {
             gap: '16px'
           }}>
             {/* Cortex Transparency Slider */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: '220px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '10px', minWidth: 0, flex: '1 1 160px' }}>
               <Eye size={14} color="var(--text-muted)" />
               <label htmlFor={cortexSliderId} style={{ fontSize: '11.5px', fontWeight: 600, color: 'var(--text-body)', whiteSpace: 'nowrap' }}>
                 Cortex Shell: {Math.round(cortexOpacity * 100)}%
@@ -901,7 +918,7 @@ export const Brain3DExplorer: React.FC = () => {
             </div>
 
             {/* Axial CT Slicing Plane Slider */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: '240px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '10px', minWidth: 0, flex: '1 1 160px' }}>
               <Scissors size={14} color="var(--text-muted)" />
               <label htmlFor={sliceSliderId} style={{ fontSize: '11.5px', fontWeight: 600, color: 'var(--text-body)', whiteSpace: 'nowrap' }}>
                 Axial Slice: {sliceLevel < 14 ? `${sliceLevel.toFixed(1)} cm` : 'Full Brain'}
@@ -919,7 +936,7 @@ export const Brain3DExplorer: React.FC = () => {
             </div>
 
             <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-              Drag mouse to orbit 360° • Scroll to zoom
+              {showTouchHint ? 'Drag to rotate - Pinch to zoom - Tap a vessel to inspect' : 'Drag mouse to orbit 360° • Scroll to zoom'}
             </span>
           </div>
         </div>
@@ -928,7 +945,7 @@ export const Brain3DExplorer: React.FC = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {/* Live Transcranial Doppler (TCD) Spectrogram Card */}
           <div className="glass-card" style={{ padding: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Activity size={16} color="var(--blue-600)" />
                 <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>

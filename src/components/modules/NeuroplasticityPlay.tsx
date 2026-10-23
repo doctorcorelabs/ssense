@@ -10,8 +10,10 @@ import {
   TrendingUp
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { useResponsive } from '../../hooks/useResponsive';
 
 export const NeuroplasticityPlay: React.FC = () => {
+  const { isMobile, isTabletPortrait } = useResponsive();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [strokeOccurred, setStrokeOccurred] = useState<boolean>(true);
   const [rehabReps, setRehabReps] = useState<number>(4);
@@ -66,22 +68,44 @@ export const NeuroplasticityPlay: React.FC = () => {
     let animId: number;
     let pulseOffset = 0;
 
-    const width = canvas.width = canvas.parentElement?.clientWidth || 750;
-    const height = canvas.height = 400;
+    // Responsive canvas size: width follows the container, height scales down on small screens.
+    const getCanvasHeight = (w: number) => (w < 560 ? 280 : w < 900 ? 340 : 400);
+    let width = canvas.parentElement?.clientWidth || 750;
+    let height = getCanvasHeight(width);
+    canvas.width = width;
+    canvas.height = height;
 
-    // Biological Node Positions
-    const motorSoma = { x: 80, y: height / 2, label: 'Motor Cortex (Soma)' };
-    const targetMuscle = { x: width - 90, y: height / 2, label: 'Hand Effector Muscle' };
-    const lesionCenter = { x: width / 2, y: height / 2, radius: 45 };
+    // Biological Node Positions (recomputed on resize)
+    let motorSoma = { x: 80, y: height / 2, label: 'Motor Cortex (Soma)' };
+    let targetMuscle = { x: width - 90, y: height / 2, label: 'Hand Effector Muscle' };
+    let lesionCenter = { x: width / 2, y: height / 2, radius: 45 };
+    let relayNodes: { x: number; y: number; label: string }[] = [];
 
-    // Peri-infarct collateral relay neurons
-    const relayNodes = [
-      { x: width * 0.32, y: height * 0.22, label: 'Premotor Cortex' },
-      { x: width * 0.50, y: height * 0.14, label: 'Supplementary Motor' },
-      { x: width * 0.68, y: height * 0.22, label: 'Contralateral Cortex' },
-      { x: width * 0.35, y: height * 0.80, label: 'Cerebellar Loop' },
-      { x: width * 0.65, y: height * 0.80, label: 'Sensory Re-map' },
-    ];
+    const computeLayout = () => {
+      const compact = width < 560;
+      motorSoma = { x: compact ? 56 : 80, y: height / 2, label: 'Motor Cortex (Soma)' };
+      targetMuscle = { x: width - (compact ? 60 : 90), y: height / 2, label: 'Hand Effector Muscle' };
+      lesionCenter = { x: width / 2, y: height / 2, radius: compact ? 32 : 45 };
+      relayNodes = [
+        { x: width * 0.32, y: height * 0.22, label: compact ? 'Premotor' : 'Premotor Cortex' },
+        { x: width * 0.50, y: height * 0.14, label: compact ? 'Supplementary' : 'Supplementary Motor' },
+        { x: width * 0.68, y: height * 0.22, label: compact ? 'Contralateral' : 'Contralateral Cortex' },
+        { x: width * 0.35, y: height * 0.80, label: compact ? 'Cerebellum' : 'Cerebellar Loop' },
+        { x: width * 0.65, y: height * 0.80, label: compact ? 'Sensory' : 'Sensory Re-map' },
+      ];
+    };
+    computeLayout();
+
+    const onResize = () => {
+      const newW = canvas.parentElement?.clientWidth || 0;
+      if (!newW || newW === width) return;
+      width = newW;
+      height = getCanvasHeight(newW);
+      canvas.width = width;
+      canvas.height = height;
+      computeLayout();
+    };
+    window.addEventListener('resize', onResize);
 
     const render = () => {
       ctx.clearRect(0, 0, width, height);
@@ -249,6 +273,7 @@ export const NeuroplasticityPlay: React.FC = () => {
 
     return () => {
       cancelAnimationFrame(animId);
+      window.removeEventListener('resize', onResize);
     };
   }, [strokeOccurred, rehabReps, maxReps, recoveryPercent]);
 
@@ -261,11 +286,11 @@ export const NeuroplasticityPlay: React.FC = () => {
           padding: '0', 
           overflow: 'hidden',
           display: 'grid',
-          gridTemplateColumns: 'minmax(320px, 1.25fr) minmax(280px, 0.75fr)',
+          gridTemplateColumns: isTabletPortrait ? 'minmax(0, 1fr)' : 'minmax(320px, 1.25fr) minmax(280px, 0.75fr)',
           backgroundColor: 'var(--bg-raised)'
         }}
       >
-        <div style={{ padding: '36px 36px 32px' }}>
+        <div style={{ padding: isMobile ? '24px 20px 20px' : '36px 36px 32px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
             <span className="badge badge-primary">
               <Dna size={13} /> Synaptogenesis Simulator
@@ -278,7 +303,7 @@ export const NeuroplasticityPlay: React.FC = () => {
             </span>
           </div>
 
-          <h1 style={{ fontSize: '32px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '12px', letterSpacing: '-0.02em' }}>
+          <h1 style={{ fontSize: isMobile ? '24px' : '32px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '12px', letterSpacing: '-0.02em' }}>
             Neuroplasticity & Synaptic Rewiring Lab
           </h1>
           
@@ -317,7 +342,7 @@ export const NeuroplasticityPlay: React.FC = () => {
         </div>
 
         {/* Photorealistic 3D Biological Synapse Sprouting Asset Visual */}
-        <div style={{ position: 'relative', minHeight: '260px', overflow: 'hidden' }}>
+        <div style={{ position: 'relative', minHeight: isMobile ? '180px' : '260px', overflow: 'hidden' }}>
           <img 
             src="/assets/synapse_rewiring_cortex.jpg" 
             alt="Biological Synapse Sprouting and Dendritic Axonal Rewiring" 
@@ -412,7 +437,7 @@ export const NeuroplasticityPlay: React.FC = () => {
       </div>
 
       {/* Main Interactive Synaptogenesis Rewiring Canvas */}
-      <div className="glass-card" style={{ padding: '28px' }}>
+      <div className="glass-card" style={{ padding: isMobile ? '18px' : '28px' }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '16px', marginBottom: '20px' }}>
           <div>
             <h3 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)' }}>
@@ -423,7 +448,7 @@ export const NeuroplasticityPlay: React.FC = () => {
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
             <button
               onClick={() => setActiveStrategy('cimt')}
               className={`btn btn-sm ${activeStrategy === 'cimt' ? 'btn-primary' : 'btn-secondary'}`}
@@ -455,14 +480,14 @@ export const NeuroplasticityPlay: React.FC = () => {
           overflow: 'hidden',
           position: 'relative'
         }}>
-          <canvas ref={canvasRef} style={{ width: '100%', display: 'block' }} />
+          <canvas ref={canvasRef} style={{ width: '100%', maxWidth: '100%', display: 'block' }} />
         </div>
 
         {/* Evidence-Based Neuroplasticity Guidelines */}
         <div style={{
           marginTop: '24px',
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))',
           gap: '16px'
         }}>
           <div style={{

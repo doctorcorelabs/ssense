@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Hand, Camera, CameraOff, Award, Sparkles, RefreshCw, Play } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { useResponsive } from '../../hooks/useResponsive';
 
 type RehabDrillId = 'fist-open' | 'thumb-opposition' | 'wrist-extension';
 
@@ -13,6 +14,9 @@ interface DrillConfig {
 }
 
 export const HandRehabCoach: React.FC = () => {
+  const { isMobile, isTabletPortrait } = useResponsive();
+  const isStacked = isTabletPortrait; // stack at <=900px
+  const stageHeight = isMobile ? 300 : 420;
   const [activeDrill, setActiveDrill] = useState<RehabDrillId>('fist-open');
   const [isWebcamActive, setIsWebcamActive] = useState<boolean>(false);
   const [repCount, setRepCount] = useState<number>(0);
@@ -89,8 +93,9 @@ export const HandRehabCoach: React.FC = () => {
       simAngle += 0.05;
 
       // Draw skeleton hand visualization on canvas
+      // Height follows the stage container (420 desktop, ~300 mobile) instead of a fixed 420
       const width = canvas.width = canvas.parentElement?.clientWidth || 640;
-      const height = canvas.height = 420;
+      const height = canvas.height = canvas.parentElement?.clientHeight || (window.innerWidth <= 640 ? 300 : 420);
 
       const centerX = width / 2;
       const centerY = height * 0.62;
@@ -237,6 +242,7 @@ export const HandRehabCoach: React.FC = () => {
                 key={dId}
                 onClick={() => { setActiveDrill(dId); handleResetDrill(); }}
                 className={`btn ${isSelected ? 'btn-primary' : 'btn-secondary'}`}
+                style={{ whiteSpace: 'normal', textAlign: 'left', minHeight: 44, lineHeight: 1.35 }}
               >
                 {drills[dId].name}
               </button>
@@ -246,9 +252,9 @@ export const HandRehabCoach: React.FC = () => {
       </div>
 
       {/* Main Grid: Tracking Stage on Left, Coaching Metrics on Right */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.8fr) minmax(320px, 1fr)', gap: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isStacked ? '1fr' : 'minmax(0, 1.8fr) minmax(320px, 1fr)', gap: '24px' }}>
         {/* Left: Computer Vision Stage */}
-        <div className="glass-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div className="glass-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span className="pulse-active"></span>
@@ -257,7 +263,7 @@ export const HandRehabCoach: React.FC = () => {
               </span>
             </div>
 
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               <button
                 onClick={() => {
                   if (isWebcamActive) {
@@ -288,7 +294,7 @@ export const HandRehabCoach: React.FC = () => {
           {/* Interactive Canvas Viewport */}
           <div style={{
             width: '100%',
-            height: '420px',
+            height: `${stageHeight}px`,
             backgroundColor: 'var(--bg-raised)',
             borderRadius: 'var(--radius-lg)',
             border: '1px solid var(--glass-border)',
@@ -299,9 +305,10 @@ export const HandRehabCoach: React.FC = () => {
             alignItems: 'center',
             justifyContent: 'center'
           }}>
-            <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />
+            <canvas ref={canvasRef} style={{ width: '100%', height: '100%', maxWidth: '100%', display: 'block' }} />
 
-            {/* Live Angle HUD */}
+            {/* Live Angle HUD - desktop/tablet only; on mobile it moves to a bar below the stage */}
+            {!isMobile && (<>
             <div style={{
               position: 'absolute',
               top: '20px',
@@ -341,9 +348,32 @@ export const HandRehabCoach: React.FC = () => {
                 {repCount} / {currentDrill.targetReps}
               </div>
             </div>
+            </>)}
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          {/* Mobile HUD bar: static row below the stage, so ROM + Reps never collide */}
+          {isMobile && (
+            <div style={{ display: 'flex', flexDirection: 'row', gap: '10px', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+              <div style={{ flex: '1 1 140px', backgroundColor: 'rgba(255, 255, 255, 0.9)', padding: '10px 16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--glass-border)', boxShadow: 'var(--shadow-sm)' }}>
+                <span style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700 }}>
+                  Active Extension (ROM)
+                </span>
+                <div style={{ fontSize: '22px', fontWeight: 800, color: currentROM > 75 ? 'var(--green-400)' : 'var(--cyan-400)', fontFamily: 'var(--font-mono)' }}>
+                  {currentROM}%
+                </div>
+              </div>
+              <div style={{ flex: '1 1 140px', textAlign: 'right', backgroundColor: 'rgba(255, 255, 255, 0.9)', padding: '10px 16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--glass-border)', boxShadow: 'var(--shadow-sm)' }}>
+                <span style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700 }}>
+                  Completed Reps
+                </span>
+                <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
+                  {repCount} / {currentDrill.targetReps}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
               *All computer vision operates 100% locally on your device for absolute medical privacy.
             </span>

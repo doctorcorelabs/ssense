@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { Pill, AlertOctagon, AlertTriangle } from 'lucide-react';
 import type { DrugInteractionResult } from '../../types/stroke';
+import { useResponsive, useMediaQuery } from '../../hooks/useResponsive';
 
 export const DrugInteractionGuard: React.FC = () => {
+  const { isMobile } = useResponsive();
+  const isNarrow = useMediaQuery('(max-width: 768px)');
   const [selectedDrug, setSelectedDrug] = useState<string>('Warfarin');
   const [selectedSupplement, setSelectedSupplement] = useState<string>('Ginkgo Biloba');
 
@@ -123,7 +126,7 @@ export const DrugInteractionGuard: React.FC = () => {
       </div>
 
       {/* Selector Matrix */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isNarrow ? '1fr' : '1fr 1fr', gap: '24px' }}>
         {/* Prescribed Blood Thinners Column */}
         <div className="glass-card" style={{ padding: '24px' }}>
           <span className="badge badge-primary" style={{ marginBottom: '10px' }}>
@@ -139,9 +142,20 @@ export const DrugInteractionGuard: React.FC = () => {
               return (
                 <div
                   key={d.id}
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={isSelected}
                   onClick={() => setSelectedDrug(d.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setSelectedDrug(d.id);
+                    }
+                  }}
                   style={{
                     padding: '12px 16px',
+                    minHeight: '44px',
+                    boxSizing: 'border-box',
                     borderRadius: 'var(--radius-md)',
                     backgroundColor: isSelected ? 'rgba(0,245,255,0.1)' : 'var(--bg-raised)',
                     border: isSelected ? '1px solid var(--primary-400)' : '1px solid var(--glass-border)',
@@ -170,15 +184,26 @@ export const DrugInteractionGuard: React.FC = () => {
             Select Supplement Being Considered:
           </h3>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '380px', overflowY: 'auto' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: isMobile ? '260px' : '380px', overflowY: 'auto' }}>
             {supplements.map((s) => {
               const isSelected = selectedSupplement === s.id;
               return (
                 <div
                   key={s.id}
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={isSelected}
                   onClick={() => setSelectedSupplement(s.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setSelectedSupplement(s.id);
+                    }
+                  }}
                   style={{
                     padding: '12px 16px',
+                    minHeight: '44px',
+                    boxSizing: 'border-box',
                     borderRadius: 'var(--radius-md)',
                     backgroundColor: isSelected ? 'rgba(251, 191, 36, 0.12)' : 'var(--bg-raised)',
                     border: isSelected ? '1px solid rgba(251, 191, 36, 0.4)' : '1px solid var(--glass-border)',

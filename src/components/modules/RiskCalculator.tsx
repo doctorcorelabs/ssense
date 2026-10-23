@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { ShieldAlert, Sparkles, TrendingDown } from 'lucide-react';
 import type { RiskProfileInput } from '../../types/stroke';
 import { generateAIRiskAnalysis } from '../../services/openRouterService';
+import { useResponsive } from '../../hooks/useResponsive';
 
 export const RiskCalculator: React.FC = () => {
+  const { isMobile, isTabletPortrait } = useResponsive();
   const [profile, setProfile] = useState<RiskProfileInput>({
     age: 58,
     sex: 'male',
@@ -89,15 +91,15 @@ export const RiskCalculator: React.FC = () => {
       </div>
 
       {/* Main Grid: Parameters on Left, Output Metrics on Right */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.3fr) minmax(340px, 1fr)', gap: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isTabletPortrait ? '1fr' : 'minmax(0, 1.3fr) minmax(340px, 1fr)', gap: '24px' }}>
         {/* Left: Input Form Parameters */}
-        <div className="glass-card" style={{ padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div className="glass-card" style={{ padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px', minWidth: 0 }}>
           <h3 style={{ fontSize: '18px', fontWeight: 700, borderBottom: '1px solid var(--glass-border)', paddingBottom: '12px' }}>
             Biometric & Cardiovascular Profile
           </h3>
 
           {/* Age & Sex */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
             <div>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px' }}>
                 Age: {profile.age} years
@@ -136,7 +138,7 @@ export const RiskCalculator: React.FC = () => {
           </div>
 
           {/* Blood Pressure Sliders */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
             <div>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px' }}>
                 Systolic BP: <span style={{ color: profile.systolicBP >= 140 ? 'var(--red-500)' : 'var(--cyan-400)', fontWeight: 700 }}>{profile.systolicBP} mmHg</span>
@@ -184,6 +186,7 @@ export const RiskCalculator: React.FC = () => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
+                    minHeight: '44px',
                     padding: '10px 14px',
                     borderRadius: 'var(--radius-md)',
                     backgroundColor: checked ? 'rgba(0,245,255,0.07)' : 'var(--bg-raised)',
@@ -200,7 +203,7 @@ export const RiskCalculator: React.FC = () => {
                     type="checkbox"
                     checked={checked}
                     onChange={(e) => setProfile({ ...profile, [item.key]: e.target.checked })}
-                    style={{ width: '18px', height: '18px', accentColor: 'var(--cyan-400)', cursor: 'pointer' }}
+                    style={{ width: '24px', height: '24px', minWidth: '24px', minHeight: '24px', accentColor: 'var(--cyan-400)', cursor: 'pointer', flexShrink: 0 }}
                   />
                 </label>
               );
@@ -209,15 +212,15 @@ export const RiskCalculator: React.FC = () => {
         </div>
 
         {/* Right: Results, Gauges & AI Analysis */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', minWidth: 0 }}>
           {/* Risk Card */}
-          <div className="glass-card" style={{ padding: '28px', textAlign: 'center' }}>
+          <div className="glass-card" style={{ padding: '28px', textAlign: 'center', minWidth: 0 }}>
             <span className="badge badge-primary" style={{ marginBottom: '12px' }}>
               Estimated 10-Year Probability
             </span>
 
             <div style={{
-              fontSize: '56px',
+              fontSize: 'clamp(36px, 9vw, 56px)',
               fontWeight: 800,
               fontFamily: 'var(--font-mono)',
               color: riskPercent >= 20 ? 'var(--red-neon)' : (riskPercent >= 10 ? 'var(--amber-400)' : 'var(--green-neon)'),
@@ -277,7 +280,7 @@ export const RiskCalculator: React.FC = () => {
 
           {/* AI Narrative Breakdown Button & Container */}
           <div className="glass-card" style={{ padding: '24px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Sparkles size={18} color="var(--cyan-400)" />
                 <h4 style={{ fontSize: '15px', fontWeight: 700 }}>AI Epidemiologist Narrative</h4>

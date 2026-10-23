@@ -13,8 +13,10 @@ import {
 } from 'lucide-react';
 import type { ChatMessage, AttachedMedicalFile } from '../../types/stroke';
 import { streamAIChat } from '../../services/openRouterService';
+import { useResponsive } from '../../hooks/useResponsive';
 
 export const AINeurologistChat: React.FC = () => {
+  const { isMobile, isTabletPortrait, isDesktop, isShortScreen } = useResponsive();
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'welcome-core',
@@ -138,7 +140,9 @@ export const AINeurologistChat: React.FC = () => {
             padding: '1px 5px',
             borderRadius: '4px',
             fontFamily: 'var(--font-mono)',
-            fontSize: '12px'
+            fontSize: '12px',
+            overflowWrap: 'anywhere',
+            wordBreak: 'break-word'
           }}>
             {part.slice(1, -1)}
           </code>
@@ -179,17 +183,19 @@ export const AINeurologistChat: React.FC = () => {
           elements.push(
             <div key={`table-${i}`} style={{
               overflowX: 'auto',
+              maxWidth: '100%',
+              minWidth: 0,
               margin: '10px 0',
               borderRadius: 'var(--radius-md)',
               border: '1px solid var(--glass-border)',
               backgroundColor: 'var(--bg-canvas)',
               boxShadow: 'var(--shadow-subtle)'
             }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
+              <table style={{ width: '100%', minWidth: '420px', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
                 <thead>
                   <tr style={{ backgroundColor: 'var(--bg-surface-sub)', borderBottom: '2px solid var(--glass-border)' }}>
                     {rawHeaders.map((headerText, hIdx) => (
-                      <th key={hIdx} style={{ padding: '8px 12px', fontWeight: 800, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>
+                      <th key={hIdx} style={{ padding: '8px 12px', fontWeight: 800, color: 'var(--text-primary)', whiteSpace: isMobile ? 'normal' : 'nowrap', overflowWrap: 'anywhere' }}>
                         {formatInline(headerText)}
                       </th>
                     ))}
@@ -310,7 +316,7 @@ export const AINeurologistChat: React.FC = () => {
       // 8. Normal Paragraph
       if (trimmed !== '') {
         elements.push(
-          <p key={i} style={{ margin: '3px 0', fontSize: '13px', lineHeight: 1.55 }}>
+          <p key={i} style={{ margin: '3px 0', fontSize: isMobile ? '14px' : '13px', lineHeight: isMobile ? 1.6 : 1.55, overflowWrap: 'anywhere', minWidth: 0 }}>
             {formatInline(line)}
           </p>
         );
@@ -473,9 +479,15 @@ ${text}
     <div style={{
       display: 'flex',
       flexDirection: 'column',
-      height: 'calc(100vh - 220px)',
-      minHeight: '520px',
-      maxHeight: '740px',
+      height: isShortScreen
+        ? 'calc(100dvh - 120px)'
+        : isMobile
+          ? 'calc(100dvh - 190px)'
+          : isTabletPortrait
+            ? 'calc(100dvh - 200px)'
+            : 'calc(100dvh - 220px)',
+      minHeight: isMobile || isShortScreen ? 0 : 520,
+      maxHeight: isDesktop && !isShortScreen ? 740 : undefined,
       borderRadius: 'var(--radius-xl)',
       backgroundColor: 'var(--bg-surface)',
       border: '1px solid var(--glass-border)',
@@ -484,7 +496,7 @@ ${text}
     }}>
       {/* 1. Header: Synaptic Core & Clinical Identity Bar */}
       <div style={{
-        padding: '14px 20px',
+        padding: isMobile ? '12px 14px' : '14px 20px',
         borderBottom: '1px solid var(--glass-border)',
         backgroundColor: 'var(--bg-surface)',
         display: 'flex',
@@ -492,7 +504,8 @@ ${text}
         justifyContent: 'space-between',
         flexWrap: 'wrap',
         gap: '12px',
-        flexShrink: 0
+        flexShrink: 0,
+        minWidth: 0
       }}>
         {/* Left: AI Identity */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -532,9 +545,10 @@ ${text}
           backgroundColor: isStreaming ? '#ecfdf5' : '#f0f9ff',
           border: `1px solid ${isStreaming ? '#a7f3d0' : '#bae6fd'}`,
           overflow: 'hidden',
-          display: 'flex',
+          display: isMobile ? 'none' : 'flex',
           alignItems: 'center',
-          justifyContent: 'center'
+          justifyContent: 'center',
+          flexShrink: 0
         }}>
           <canvas ref={canvasRef} width={140} height={32} style={{ width: '100%', height: '100%' }} />
         </div>
@@ -542,7 +556,7 @@ ${text}
 
       {/* 2. Patient Clinical Context HUD (Compact Ribbon) */}
       <div style={{
-        padding: '8px 20px',
+        padding: isMobile ? '8px 12px' : '8px 20px',
         backgroundColor: 'var(--bg-raised)',
         borderBottom: '1px solid var(--glass-border)',
         display: 'flex',
@@ -550,7 +564,8 @@ ${text}
         flexWrap: 'wrap',
         gap: '8px',
         flexShrink: 0,
-        fontSize: '11.5px'
+        fontSize: '11.5px',
+        minWidth: 0
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-subtle)', fontWeight: 700, marginRight: '4px' }}>
           <Activity size={13} color="var(--blue-600)" />
@@ -558,12 +573,12 @@ ${text}
         </div>
 
         {/* Onset Pill */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: 'var(--bg-surface)', padding: '3px 8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--glass-border)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: 'var(--bg-surface)', padding: '3px 8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--glass-border)', flex: isMobile ? '1 1 140px' : undefined, minWidth: 0, minHeight: isMobile ? 36 : undefined, boxSizing: 'border-box' }}>
           <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>Onset:</span>
           <select
             value={contextOnset}
             onChange={(e) => setContextOnset(e.target.value)}
-            style={{ border: 'none', background: 'transparent', fontSize: '11.5px', fontWeight: 700, color: '#0369a1', outline: 'none', cursor: 'pointer' }}
+            style={{ border: 'none', background: 'transparent', fontSize: '11.5px', fontWeight: 700, color: '#0369a1', outline: 'none', cursor: 'pointer', flex: '1 1 auto', minWidth: 0, maxWidth: '100%', minHeight: isMobile ? 36 : undefined, textOverflow: 'ellipsis' }}
           >
             <option value="< 3h (Golden)">&lt; 3h (Golden Window)</option>
             <option value="3 - 4.5h (Extended IV)">3 - 4.5h (Extended IV)</option>
@@ -573,12 +588,12 @@ ${text}
         </div>
 
         {/* Territory Pill */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: 'var(--bg-surface)', padding: '3px 8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--glass-border)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: 'var(--bg-surface)', padding: '3px 8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--glass-border)', flex: isMobile ? '1 1 140px' : undefined, minWidth: 0, minHeight: isMobile ? 36 : undefined, boxSizing: 'border-box' }}>
           <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>Vessel:</span>
           <select
             value={contextVessel}
             onChange={(e) => setContextVessel(e.target.value)}
-            style={{ border: 'none', background: 'transparent', fontSize: '11.5px', fontWeight: 700, color: '#0369a1', outline: 'none', cursor: 'pointer' }}
+            style={{ border: 'none', background: 'transparent', fontSize: '11.5px', fontWeight: 700, color: '#0369a1', outline: 'none', cursor: 'pointer', flex: '1 1 auto', minWidth: 0, maxWidth: '100%', minHeight: isMobile ? 36 : undefined, textOverflow: 'ellipsis' }}
           >
             <option value="Left MCA (Dominant)">Left MCA (Aphasia)</option>
             <option value="Right MCA (Neglect)">Right MCA (Neglect)</option>
@@ -589,12 +604,12 @@ ${text}
         </div>
 
         {/* BP Pill */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: 'var(--bg-surface)', padding: '3px 8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--glass-border)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: 'var(--bg-surface)', padding: '3px 8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--glass-border)', flex: isMobile ? '1 1 140px' : undefined, minWidth: 0, minHeight: isMobile ? 36 : undefined, boxSizing: 'border-box' }}>
           <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>BP:</span>
           <select
             value={contextBP}
             onChange={(e) => setContextBP(e.target.value)}
-            style={{ border: 'none', background: 'transparent', fontSize: '11.5px', fontWeight: 700, color: contextBP.includes('> 185') ? '#be123c' : '#0369a1', outline: 'none', cursor: 'pointer' }}
+            style={{ border: 'none', background: 'transparent', fontSize: '11.5px', fontWeight: 700, color: contextBP.includes('> 185') ? '#be123c' : '#0369a1', outline: 'none', cursor: 'pointer', flex: '1 1 auto', minWidth: 0, maxWidth: '100%', minHeight: isMobile ? 36 : undefined, textOverflow: 'ellipsis' }}
           >
             <option value="< 140/90 (Normal)">&lt; 140/90 mmHg</option>
             <option value="168/94 (Elevated)">168/94 mmHg (Permissive)</option>
@@ -603,12 +618,12 @@ ${text}
         </div>
 
         {/* NIHSS Pill */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: 'var(--bg-surface)', padding: '3px 8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--glass-border)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: 'var(--bg-surface)', padding: '3px 8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--glass-border)', flex: isMobile ? '1 1 140px' : undefined, minWidth: 0, minHeight: isMobile ? 36 : undefined, boxSizing: 'border-box' }}>
           <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>NIHSS:</span>
           <select
             value={contextNIHSS}
             onChange={(e) => setContextNIHSS(e.target.value)}
-            style={{ border: 'none', background: 'transparent', fontSize: '11.5px', fontWeight: 700, color: '#0369a1', outline: 'none', cursor: 'pointer' }}
+            style={{ border: 'none', background: 'transparent', fontSize: '11.5px', fontWeight: 700, color: '#0369a1', outline: 'none', cursor: 'pointer', flex: '1 1 auto', minWidth: 0, maxWidth: '100%', minHeight: isMobile ? 36 : undefined, textOverflow: 'ellipsis' }}
           >
             <option value="NIHSS 3 (Minor)">NIHSS 3 (Minor 1-4)</option>
             <option value="NIHSS 14 (Moderate)">NIHSS 14 (Moderate 5-15)</option>
@@ -621,10 +636,13 @@ ${text}
       <div style={{
         flex: 1,
         overflowY: 'auto',
-        padding: '20px 24px',
+        overflowX: 'hidden',
+        minHeight: 0,
+        minWidth: 0,
+        padding: isMobile ? '14px 12px' : '20px 24px',
         display: 'flex',
         flexDirection: 'column',
-        gap: '16px'
+        gap: isMobile ? '12px' : '16px'
       }}>
         {messages.map((msg) => {
           const isUser = msg.sender === 'user';
@@ -635,8 +653,11 @@ ${text}
                 display: 'flex',
                 flexDirection: isUser ? 'row-reverse' : 'row',
                 alignItems: 'flex-start',
-                gap: '10px',
-                maxWidth: '100%'
+                gap: isMobile ? '8px' : '10px',
+                maxWidth: '100%',
+                width: '100%',
+                minWidth: 0,
+                boxSizing: 'border-box'
               }}
             >
               {/* Mini Avatar */}
@@ -657,16 +678,20 @@ ${text}
 
               {/* Bubble Card */}
               <div style={{
-                maxWidth: '90%',
+                maxWidth: isMobile ? '92%' : 'min(78%, 760px)',
+                minWidth: 0,
+                flex: '0 1 auto',
+                overflowWrap: 'anywhere',
                 backgroundColor: isUser ? 'var(--blue-600)' : 'var(--bg-surface)',
                 color: isUser ? '#ffffff' : 'var(--text-primary)',
                 borderRadius: isUser ? '16px 4px 16px 16px' : '4px 16px 16px 16px',
                 border: isUser ? 'none' : '1px solid var(--glass-border)',
-                padding: '14px 18px',
+                padding: isMobile ? '10px 12px' : '14px 18px',
                 boxShadow: 'var(--shadow-subtle)',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '6px'
+                gap: '6px',
+                boxSizing: 'border-box'
               }}>
                 {/* Meta Header */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
@@ -699,8 +724,8 @@ ${text}
                     ) : (
                       <FileText size={18} color={isUser ? '#ffffff' : 'var(--blue-600)'} />
                     )}
-                    <div>
-                      <div style={{ fontSize: '11.5px', fontWeight: 700 }}>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: '11.5px', fontWeight: 700, maxWidth: isMobile ? '140px' : '220px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {msg.attachment.name}
                       </div>
                       <div style={{ fontSize: '10px', opacity: 0.85 }}>
@@ -711,13 +736,13 @@ ${text}
                 )}
 
                 {/* Formatted Content */}
-                <div>
+                <div style={{ minWidth: 0, overflowWrap: 'anywhere' }}>
                   {isUser ? (
-                    <div style={{ fontSize: '13px', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
+                    <div style={{ fontSize: '13px', lineHeight: 1.5, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', minWidth: 0 }}>
                       {msg.content}
                     </div>
                   ) : (
-                    <div>{renderMarkdownContent(msg.content)}</div>
+                    <div style={{ minWidth: 0, overflowWrap: 'anywhere' }}>{renderMarkdownContent(msg.content)}</div>
                   )}
                 </div>
 
@@ -735,7 +760,7 @@ ${text}
                     <button
                       onClick={() => handleCopy(msg.id, msg.content)}
                       className="btn btn-sm btn-secondary"
-                      style={{ fontSize: '10.5px', padding: '2px 8px' }}
+                      style={{ fontSize: '10.5px', padding: isMobile ? '6px 10px' : '2px 8px', minHeight: isMobile ? 36 : undefined }}
                     >
                       {copiedId === msg.id ? <Check size={11} color="#15803d" /> : <Copy size={11} />}
                       <span>{copiedId === msg.id ? 'Copied' : 'Copy'}</span>
@@ -744,7 +769,7 @@ ${text}
                     <button
                       onClick={() => handleCopySOAP(msg.id, msg.content)}
                       className="btn btn-sm btn-secondary"
-                      style={{ fontSize: '10.5px', padding: '2px 8px', color: '#0369a1' }}
+                      style={{ fontSize: '10.5px', padding: isMobile ? '6px 10px' : '2px 8px', color: '#0369a1', minHeight: isMobile ? 36 : undefined }}
                       title="Copy structured SOAP note"
                     >
                       {soapCopiedId === msg.id ? <Check size={11} color="#15803d" /> : <FileCheck size={11} />}
@@ -760,13 +785,15 @@ ${text}
 
       {/* 4. Pinned Bottom Input Dock (Always Visible!) */}
       <div style={{
-        padding: '10px 18px',
+        padding: isMobile ? '10px 12px' : '10px 18px',
         backgroundColor: 'var(--bg-surface)',
         borderTop: '1px solid var(--glass-border)',
         display: 'flex',
         flexDirection: 'column',
         gap: '8px',
-        flexShrink: 0
+        flexShrink: 0,
+        minWidth: 0,
+        boxSizing: 'border-box'
       }}>
         {/* Attached File Preview Chip */}
         {attachedFile && (
@@ -778,7 +805,10 @@ ${text}
             backgroundColor: '#eff6ff',
             borderRadius: 'var(--radius-full)',
             border: '1px solid #bfdbfe',
-            width: 'fit-content'
+            width: 'fit-content',
+            maxWidth: '100%',
+            minWidth: 0,
+            boxSizing: 'border-box'
           }}>
             {attachedFile.previewUrl ? (
               <img
@@ -789,7 +819,7 @@ ${text}
             ) : (
               <FileText size={13} color="#2563eb" />
             )}
-            <span style={{ fontSize: '11px', fontWeight: 600, color: '#1e40af' }}>
+            <span style={{ fontSize: '11px', fontWeight: 600, color: '#1e40af', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: isMobile ? '180px' : '320px' }}>
               {attachedFile.name} ({(attachedFile.size / 1024).toFixed(0)} KB)
             </span>
             <button
@@ -804,43 +834,45 @@ ${text}
         {/* Quick Prompt Category Chips (Horizontal Scrollable) */}
         <div style={{
           display: 'flex',
-          gap: '6px',
+          gap: isMobile ? '8px' : '6px',
           overflowX: 'auto',
           paddingBottom: '2px',
-          scrollbarWidth: 'none'
+          scrollbarWidth: 'none',
+          maxWidth: '100%',
+          minWidth: 0
         }}>
           <button
             onClick={() => handleSendMessage('Patient presents with BP 172/98 mmHg and symptom onset 80 minutes ago. Does this meet criteria for IV Alteplase / Tenecteplase thrombolysis?')}
             className="btn btn-sm btn-secondary"
-            style={{ fontSize: '10.5px', padding: '3px 8px', whiteSpace: 'nowrap', flexShrink: 0 }}
+            style={{ fontSize: isMobile ? '12px' : '10.5px', padding: isMobile ? '6px 12px' : '3px 8px', whiteSpace: 'nowrap', flexShrink: 0, minHeight: isMobile ? 36 : undefined, display: 'inline-flex', alignItems: 'center' }}
           >
             🚨 BP 172/98 Onset 80m: tPA?
           </button>
           <button
             onClick={() => handleSendMessage('What are the primary clinical deficits distinguishing dominant left vs non-dominant right MCA occlusion?')}
             className="btn btn-sm btn-secondary"
-            style={{ fontSize: '10.5px', padding: '3px 8px', whiteSpace: 'nowrap', flexShrink: 0 }}
+            style={{ fontSize: isMobile ? '12px' : '10.5px', padding: isMobile ? '6px 12px' : '3px 8px', whiteSpace: 'nowrap', flexShrink: 0, minHeight: isMobile ? 36 : undefined, display: 'inline-flex', alignItems: 'center' }}
           >
             🧠 Left vs Right MCA Deficit
           </button>
           <button
             onClick={() => handleSendMessage('Under DAWN and DEFUSE 3 trial criteria, which acute stroke patients qualify for Mechanical Thrombectomy (EVT) in the 6-24 hour extended window?')}
             className="btn btn-sm btn-secondary"
-            style={{ fontSize: '10.5px', padding: '3px 8px', whiteSpace: 'nowrap', flexShrink: 0 }}
+            style={{ fontSize: isMobile ? '12px' : '10.5px', padding: isMobile ? '6px 12px' : '3px 8px', whiteSpace: 'nowrap', flexShrink: 0, minHeight: isMobile ? 36 : undefined, display: 'inline-flex', alignItems: 'center' }}
           >
             ⚡ Extended Window EVT Criteria
           </button>
           <button
             onClick={() => handleSendMessage('What is the optimal timing and safety protocol to initiate or resume DOAC anticoagulation following acute ischemic stroke in atrial fibrillation?')}
             className="btn btn-sm btn-secondary"
-            style={{ fontSize: '10.5px', padding: '3px 8px', whiteSpace: 'nowrap', flexShrink: 0 }}
+            style={{ fontSize: isMobile ? '12px' : '10.5px', padding: isMobile ? '6px 12px' : '3px 8px', whiteSpace: 'nowrap', flexShrink: 0, minHeight: isMobile ? 36 : undefined, display: 'inline-flex', alignItems: 'center' }}
           >
             💊 DOAC Resumption Protocol
           </button>
         </div>
 
         {/* Input Bar */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: isMobile ? 'wrap' : 'nowrap', minWidth: 0, width: '100%', boxSizing: 'border-box' }}>
           <input
             type="file"
             ref={fileInputRef}
@@ -853,17 +885,22 @@ ${text}
             onClick={() => fileInputRef.current?.click()}
             className="btn btn-secondary btn-sm"
             style={{
-              padding: '8px 10px',
+              padding: isMobile ? '8px' : '8px 10px',
               display: 'flex',
               alignItems: 'center',
+              justifyContent: 'center',
               gap: '4px',
               color: attachedFile ? '#2563eb' : 'var(--text-muted)',
-              borderRadius: 'var(--radius-md)'
+              borderRadius: 'var(--radius-md)',
+              flexShrink: 0,
+              minHeight: isMobile ? 36 : undefined,
+              minWidth: isMobile ? 36 : undefined
             }}
             title="Attach CT/MRI Scan, Lab report, or PDF document"
+            aria-label="Attach file"
           >
             <Paperclip size={15} />
-            <span style={{ fontSize: '11.5px' }}>Attach</span>
+            {!isMobile && <span style={{ fontSize: '11.5px' }}>Attach</span>}
           </button>
 
           <input
@@ -879,14 +916,17 @@ ${text}
             placeholder="Ask about tPA/EVT protocols, scan interpretation, or drug interactions..."
             disabled={isStreaming}
             style={{
-              flex: 1,
+              flex: '1 1 auto',
+              minWidth: 0,
               padding: '9px 14px',
-              fontSize: '13px',
+              fontSize: isMobile ? '16px' : '13px',
+              minHeight: isMobile ? 36 : undefined,
               borderRadius: 'var(--radius-md)',
               border: '1px solid var(--glass-border)',
               backgroundColor: 'var(--bg-raised)',
               color: 'var(--text-primary)',
-              outline: 'none'
+              outline: 'none',
+              boxSizing: 'border-box'
             }}
           />
 
@@ -895,13 +935,16 @@ ${text}
             disabled={(!inputPrompt.trim() && !attachedFile) || isStreaming}
             className="btn btn-primary btn-sm"
             style={{
-              padding: '9px 16px',
+              padding: isMobile ? '9px 12px' : '9px 16px',
               borderRadius: 'var(--radius-md)',
               fontWeight: 700,
               fontSize: '12.5px',
               display: 'flex',
               alignItems: 'center',
-              gap: '5px'
+              gap: '5px',
+              flexShrink: 0,
+              whiteSpace: 'nowrap',
+              minHeight: isMobile ? 36 : undefined
             }}
           >
             <Send size={14} />

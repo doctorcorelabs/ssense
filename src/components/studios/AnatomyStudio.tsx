@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useResponsive } from '../../hooks/useResponsive';
 import { Brain, Timer, ArrowLeft, Zap, Dna, Clock } from 'lucide-react';
 import { Brain3DExplorer } from '../modules/Brain3DExplorer';
 import { GoldenHourClock } from '../modules/GoldenHourClock';
@@ -14,9 +15,10 @@ interface AnatomyStudioProps {
 
 export const AnatomyStudio: React.FC<AnatomyStudioProps> = ({ onBackToOverview }) => {
   const [subView, setSubView] = useState<AnatomySubView>('3d-brain');
+  const { isMobile, isTabletPortrait } = useResponsive();
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', paddingBottom: '70px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', paddingBottom: '70px', width: '100%', minWidth: 0, boxSizing: 'border-box' }}>
       {/* Studio Header Bar */}
       <div style={{
         display: 'flex',
@@ -27,19 +29,20 @@ export const AnatomyStudio: React.FC<AnatomyStudioProps> = ({ onBackToOverview }
         paddingBottom: '16px',
         borderBottom: '1px solid var(--glass-border)'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap', minWidth: 0, flex: '1 1 auto' }}>
           <button
             onClick={onBackToOverview}
             className="btn btn-secondary btn-sm"
             title="Return to Overview"
+            style={{ minHeight: isMobile ? 40 : undefined, minWidth: isMobile ? 40 : undefined, flexShrink: 0 }}
           >
             <ArrowLeft size={14} />
             <span>Overview</span>
           </button>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span className="badge badge-primary">Studio 1</span>
-              <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)' }}>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', minWidth: 0 }}>
+              <span className="badge badge-primary" style={{ flexShrink: 0 }}>Studio 1</span>
+              <h2 style={{ fontSize: 'clamp(17px, 4.5vw, 20px)', fontWeight: 800, color: 'var(--text-primary)' }}>
                 Acute Vascular &amp; 3D Anatomy Suite
               </h2>
             </div>
@@ -54,8 +57,10 @@ export const AnatomyStudio: React.FC<AnatomyStudioProps> = ({ onBackToOverview }
           display: 'flex',
           flexWrap: 'wrap',
           padding: '4px',
-          borderRadius: 'var(--radius-full)',
+          borderRadius: isTabletPortrait ? '16px' : 'var(--radius-full)',
           backgroundColor: 'var(--bg-surface-sub)',
+          maxWidth: '100%',
+          minWidth: 0,
           border: '1px solid var(--glass-border)',
           gap: '2px'
         }}>
@@ -65,7 +70,10 @@ export const AnatomyStudio: React.FC<AnatomyStudioProps> = ({ onBackToOverview }
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              padding: '6px 14px',
+              padding: isMobile ? '8px 10px' : '6px 14px',
+              minHeight: isMobile ? 40 : undefined,
+              flex: isMobile ? '1 1 130px' : undefined,
+              justifyContent: isMobile ? 'center' : undefined,
               borderRadius: 'var(--radius-full)',
               fontSize: '12px',
               fontWeight: subView === '3d-brain' ? 700 : 500,
@@ -85,7 +93,10 @@ export const AnatomyStudio: React.FC<AnatomyStudioProps> = ({ onBackToOverview }
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              padding: '6px 14px',
+              padding: isMobile ? '8px 10px' : '6px 14px',
+              minHeight: isMobile ? 40 : undefined,
+              flex: isMobile ? '1 1 130px' : undefined,
+              justifyContent: isMobile ? 'center' : undefined,
               borderRadius: 'var(--radius-full)',
               fontSize: '12px',
               fontWeight: subView === 'evt-sim' ? 700 : 500,
@@ -105,7 +116,10 @@ export const AnatomyStudio: React.FC<AnatomyStudioProps> = ({ onBackToOverview }
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              padding: '6px 14px',
+              padding: isMobile ? '8px 10px' : '6px 14px',
+              minHeight: isMobile ? 40 : undefined,
+              flex: isMobile ? '1 1 130px' : undefined,
+              justifyContent: isMobile ? 'center' : undefined,
               borderRadius: 'var(--radius-full)',
               fontSize: '12px',
               fontWeight: subView === 'digital-twin' ? 700 : 500,
@@ -125,7 +139,10 @@ export const AnatomyStudio: React.FC<AnatomyStudioProps> = ({ onBackToOverview }
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              padding: '6px 14px',
+              padding: isMobile ? '8px 10px' : '6px 14px',
+              minHeight: isMobile ? 40 : undefined,
+              flex: isMobile ? '1 1 130px' : undefined,
+              justifyContent: isMobile ? 'center' : undefined,
               borderRadius: 'var(--radius-full)',
               fontSize: '12px',
               fontWeight: subView === 'golden-hour' ? 700 : 500,
@@ -145,7 +162,10 @@ export const AnatomyStudio: React.FC<AnatomyStudioProps> = ({ onBackToOverview }
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              padding: '6px 14px',
+              padding: isMobile ? '8px 10px' : '6px 14px',
+              minHeight: isMobile ? 40 : undefined,
+              flex: isMobile ? '1 1 130px' : undefined,
+              justifyContent: isMobile ? 'center' : undefined,
               borderRadius: 'var(--radius-full)',
               fontSize: '12px',
               fontWeight: subView === 'multiverse' ? 700 : 500,
@@ -162,7 +182,7 @@ export const AnatomyStudio: React.FC<AnatomyStudioProps> = ({ onBackToOverview }
       </div>
 
       {/* Render Active Tool */}
-      <div>
+      <div style={{ width: '100%', minWidth: 0 }}>
         {subView === '3d-brain' && <Brain3DExplorer />}
         {subView === 'evt-sim' && <VirtualEVTSimulator />}
         {subView === 'digital-twin' && <AIBrainDigitalTwin />}

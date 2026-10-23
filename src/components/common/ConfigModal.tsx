@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Key, Server, CheckCircle2, ShieldCheck, Sparkles, Cpu, Globe } from 'lucide-react';
+import { useResponsive } from '../../hooks/useResponsive';
 import { DEFAULT_AI_MODEL, DEFAULT_API_KEY } from '../../services/openRouterService';
 
 interface ConfigModalProps {
@@ -14,6 +15,16 @@ export const ConfigModal: React.FC<ConfigModalProps> = ({ isOpen, onClose }) => 
   const [saved, setSaved] = useState(false);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<string | null>(null);
+  const { isMobile, isShortScreen } = useResponsive();
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -62,22 +73,34 @@ export const ConfigModal: React.FC<ConfigModalProps> = ({ isOpen, onClose }) => 
   };
 
   return (
-    <div style={{
+    <div
+      onClick={onClose}
+      style={{
       position: 'fixed',
       inset: 0,
       backgroundColor: 'rgba(15, 23, 42, 0.45)',
       backdropFilter: 'blur(8px)',
       WebkitBackdropFilter: 'blur(8px)',
       display: 'flex',
-      alignItems: 'center',
+      alignItems: isShortScreen ? 'flex-start' : 'center',
       justifyContent: 'center',
       zIndex: 1000,
-      padding: '20px'
+      padding: isMobile
+        ? 'max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left))'
+        : '20px',
+      overflowY: 'auto'
     }}>
-      <div className="bento-tile" style={{
+      <div
+        className="bento-tile"
+        role="dialog"
+        aria-modal="true"
+        onClick={(e) => e.stopPropagation()}
+        style={{
         maxWidth: '520px',
         width: '100%',
-        padding: '32px',
+        maxHeight: '92dvh',
+        overflowY: 'auto',
+        padding: isMobile ? '20px 18px' : '32px',
         borderRadius: 'var(--radius-xl)',
         backgroundColor: 'var(--bg-surface)',
         border: '1px solid var(--glass-border)',
@@ -86,14 +109,19 @@ export const ConfigModal: React.FC<ConfigModalProps> = ({ isOpen, onClose }) => 
         color: 'var(--text-primary)'
       }}>
         {/* Close Button */}
-        <button 
+        <button
           onClick={onClose}
+          aria-label="Close"
           style={{
             position: 'absolute',
-            top: '20px',
-            right: '20px',
+            top: '16px',
+            right: '16px',
             color: 'var(--text-muted)',
-            padding: '6px',
+            padding: '11px',
+            width: '40px',
+            height: '40px',
+            minWidth: '40px',
+            minHeight: '40px',
             borderRadius: 'var(--radius-sm)',
             display: 'flex',
             alignItems: 'center',
@@ -107,7 +135,7 @@ export const ConfigModal: React.FC<ConfigModalProps> = ({ isOpen, onClose }) => 
         </button>
 
         {/* Modal Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '18px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '18px', paddingRight: isMobile ? '40px' : undefined }}>
           <div style={{
             width: '42px',
             height: '42px',
@@ -143,7 +171,7 @@ export const ConfigModal: React.FC<ConfigModalProps> = ({ isOpen, onClose }) => 
           alignItems: 'center'
         }}>
           <ShieldCheck size={18} color="var(--blue-600)" style={{ flexShrink: 0 }} />
-          <p style={{ fontSize: '12px', color: 'var(--blue-900)', lineHeight: 1.5 }}>
+          <p style={{ fontSize: '12px', color: 'var(--blue-900)', lineHeight: 1.5, overflowWrap: 'anywhere' }}>
             <strong>Active Target:</strong> <code>{model}</code> streamed via Cloudflare Edge Worker.
           </p>
         </div>
@@ -166,7 +194,7 @@ export const ConfigModal: React.FC<ConfigModalProps> = ({ isOpen, onClose }) => 
                 padding: '9px 12px',
                 borderRadius: 'var(--radius-md)',
                 border: '1px solid var(--glass-border)',
-                fontSize: '13px',
+                fontSize: isMobile ? '16px' : '13px',
                 backgroundColor: 'var(--bg-surface-sub)',
                 color: 'var(--text-primary)',
                 fontFamily: 'var(--font-mono)'
@@ -190,7 +218,7 @@ export const ConfigModal: React.FC<ConfigModalProps> = ({ isOpen, onClose }) => 
                 padding: '9px 12px',
                 borderRadius: 'var(--radius-md)',
                 border: '1px solid var(--glass-border)',
-                fontSize: '13px',
+                fontSize: isMobile ? '16px' : '13px',
                 backgroundColor: 'var(--bg-surface-sub)',
                 color: 'var(--text-primary)',
                 fontFamily: 'var(--font-mono)'
@@ -218,7 +246,7 @@ export const ConfigModal: React.FC<ConfigModalProps> = ({ isOpen, onClose }) => 
                   padding: '9px 12px 9px 36px',
                   borderRadius: 'var(--radius-md)',
                   border: '1px solid var(--glass-border)',
-                  fontSize: '13px',
+                  fontSize: isMobile ? '16px' : '13px',
                   backgroundColor: 'var(--bg-surface-sub)',
                   color: 'var(--text-primary)',
                   fontFamily: 'var(--font-mono)'

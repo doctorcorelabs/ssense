@@ -35,7 +35,7 @@ export const App: React.FC = () => {
       />
 
       {/* Main Content Area */}
-      <main style={{ flex: 1, padding: '28px 0 64px' }}>
+      <main style={{ flex: 1, padding: '28px 0 calc(112px + env(safe-area-inset-bottom, 0px))' }}>
         <div className="container">
           {/* Overview Hub with Bento Hero Dossier */}
           {activeTab === 'overview' && (

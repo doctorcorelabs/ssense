@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, RefreshCw, GitBranch } from 'lucide-react';
+import { useResponsive } from '../../hooks/useResponsive';
 
 interface CircleOfWillisModalProps {
   isOpen: boolean;
@@ -10,6 +11,16 @@ type OcclusionSite = 'none' | 'left-ica' | 'basilar' | 'left-mca' | 'right-ica';
 
 export const CircleOfWillisModal: React.FC<CircleOfWillisModalProps> = ({ isOpen, onClose }) => {
   const [occlusion, setOcclusion] = useState<OcclusionSite>('left-ica');
+  const { isMobile, isTabletPortrait, isShortScreen } = useResponsive();
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -61,24 +72,34 @@ export const CircleOfWillisModal: React.FC<CircleOfWillisModalProps> = ({ isOpen
   const status = getCollateralStatus();
 
   return (
-    <div style={{
+    <div
+      onClick={onClose}
+      style={{
       position: 'fixed',
       inset: 0,
       backgroundColor: 'rgba(7, 11, 20, 0.65)',
       backdropFilter: 'blur(8px)',
       WebkitBackdropFilter: 'blur(8px)',
       display: 'flex',
-      alignItems: 'center',
+      alignItems: isShortScreen ? 'flex-start' : 'center',
       justifyContent: 'center',
       zIndex: 1000,
-      padding: '20px'
+      padding: isMobile
+        ? 'max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left))'
+        : '20px',
+      overflowY: 'auto'
     }}>
-      <div className="glass-card" style={{
+      <div
+        className="glass-card"
+        role="dialog"
+        aria-modal="true"
+        onClick={(e) => e.stopPropagation()}
+        style={{
         maxWidth: '860px',
         width: '100%',
-        maxHeight: '92vh',
+        maxHeight: '92dvh',
         overflowY: 'auto',
-        padding: '28px 32px',
+        padding: isMobile ? '20px 18px' : '28px 32px',
         borderRadius: 'var(--radius-xl)',
         position: 'relative',
         backgroundColor: 'var(--bg-surface)',
@@ -88,7 +109,7 @@ export const CircleOfWillisModal: React.FC<CircleOfWillisModalProps> = ({ isOpen
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', marginBottom: '20px' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', flexWrap: 'wrap' }}>
               <span className="badge badge-primary">
                 <GitBranch size={13} /> Hemodynamic Anastomosis Engine
               </span>
@@ -106,14 +127,22 @@ export const CircleOfWillisModal: React.FC<CircleOfWillisModalProps> = ({ isOpen
 
           <button
             onClick={onClose}
+            aria-label="Close"
             style={{
               background: 'none',
               border: 'none',
               cursor: 'pointer',
               color: 'var(--text-muted)',
-              padding: '6px',
+              padding: '10px',
+              width: '40px',
+              height: '40px',
+              minWidth: '40px',
+              minHeight: '40px',
               borderRadius: 'var(--radius-sm)',
-              display: 'flex'
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0
             }}
           >
             <X size={20} />
@@ -161,13 +190,13 @@ export const CircleOfWillisModal: React.FC<CircleOfWillisModalProps> = ({ isOpen
         </div>
 
         {/* Stage: Interactive SVG Diagram & Telemetry */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '24px', alignItems: 'center' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isTabletPortrait ? '1fr' : '1.2fr 1fr', gap: isTabletPortrait ? '16px' : '24px', alignItems: isTabletPortrait ? 'stretch' : 'center' }}>
           {/* Left: SVG Diagram of the Circle of Willis */}
           <div style={{
             backgroundColor: 'var(--bg-canvas)',
             borderRadius: 'var(--radius-lg)',
             border: '1px solid var(--glass-border)',
-            padding: '24px',
+            padding: isTabletPortrait ? '12px' : '24px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -311,7 +340,7 @@ export const CircleOfWillisModal: React.FC<CircleOfWillisModalProps> = ({ isOpen
 
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(2, 1fr)',
+              gridTemplateColumns: isMobile ? 'repeat(2, minmax(0, 1fr))' : 'repeat(2, 1fr)',
               gap: '10px'
             }}>
               <div style={{ padding: '12px', backgroundColor: 'var(--bg-canvas)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--glass-border)' }}>

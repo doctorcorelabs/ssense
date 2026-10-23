@@ -12,12 +12,14 @@ import {
   ChevronRight
 } from 'lucide-react';
 import type { ActiveTab } from '../../types/stroke';
+import { useResponsive } from '../../hooks/useResponsive';
 
 interface OverviewHubProps {
   setActiveTab: (tab: ActiveTab) => void;
 }
 
 export const OverviewHub: React.FC<OverviewHubProps> = ({ setActiveTab }) => {
+  const { isMobile, isTabletPortrait } = useResponsive();
   // Acute Stroke Time Elapsed Scrubber (minutes since symptom onset)
   const [minutesElapsed, setMinutesElapsed] = useState<number>(75);
   // Selected BE-FAST symptom trigger
@@ -121,8 +123,21 @@ export const OverviewHub: React.FC<OverviewHubProps> = ({ setActiveTab }) => {
     let animId: number;
 
     const draw = () => {
-      const w = (canvas.width = canvas.parentElement?.clientWidth || 400);
-      const h = (canvas.height = 48);
+      // DPR-aware sizing: use CSS pixel size for drawing logic, scale the
+      // backing store by devicePixelRatio so Retina/phone rendering is sharp
+      // and the canvas never exceeds its parent width (overflow guard).
+      const cssW = canvas.parentElement?.clientWidth || 400;
+      const cssH = 48;
+      const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
+      const targetW = Math.round(cssW * dpr);
+      const targetH = Math.round(cssH * dpr);
+      if (canvas.width !== targetW || canvas.height !== targetH) {
+        canvas.width = targetW;
+        canvas.height = targetH;
+      }
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const w = cssW;
+      const h = cssH;
       ctx.clearRect(0, 0, w, h);
 
       ctx.beginPath();
@@ -148,16 +163,16 @@ export const OverviewHub: React.FC<OverviewHubProps> = ({ setActiveTab }) => {
   }, []);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', paddingBottom: '70px' }}>
-      
+    <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '24px' : '32px', paddingBottom: '70px' }}>
+
       {/* ── BENTO HERO: ACUTE PERFUSION DOSSIER ───────────────────────── */}
-      <section style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.4fr) minmax(340px, 1fr)', gap: '20px' }}>
-        
+      <section style={{ display: 'grid', gridTemplateColumns: isTabletPortrait ? '1fr' : 'minmax(0, 1.4fr) minmax(340px, 1fr)', gap: '20px' }}>
+
         {/* Bento Tile 1 (Large 60%): Interactive Perfusion Scrubber */}
-        <div className="bento-tile" style={{ padding: '32px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-          <div>
+        <div className="bento-tile" style={{ padding: isMobile ? '20px 18px' : '32px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0 }}>
+          <div style={{ minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', minWidth: 0 }}>
                 <span className="badge badge-primary">
                   <Activity size={12} /> Acute Neurovascular Dossier
                 </span>
@@ -178,7 +193,7 @@ export const OverviewHub: React.FC<OverviewHubProps> = ({ setActiveTab }) => {
               color: 'var(--text-primary)',
               marginBottom: '12px'
             }}>
-              Acute Ischemic Stroke: <br />
+              Acute Ischemic Stroke:{isMobile ? ' ' : <br />}
               <span style={{ color: 'var(--blue-600)' }}>Every Minute Salvages 1.9 Million Neurons</span>
             </h1>
 
@@ -192,19 +207,20 @@ export const OverviewHub: React.FC<OverviewHubProps> = ({ setActiveTab }) => {
             backgroundColor: 'var(--bg-surface-sub)',
             borderRadius: 'var(--radius-lg)',
             border: '1px solid var(--glass-border)',
-            padding: '20px',
+            padding: isMobile ? '16px' : '20px',
             display: 'flex',
             flexDirection: 'column',
-            gap: '16px'
+            gap: '16px',
+            minWidth: 0
           }}>
             {/* Header with values */}
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-              <div>
+              <div style={{ minWidth: 0, flex: isMobile ? '1 1 100%' : undefined }}>
                 <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                   Time Since Symptom Onset (Last Known Normal)
                 </span>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '2px' }}>
-                  <span style={{ fontSize: '32px', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--text-primary)', lineHeight: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '2px', flexWrap: 'wrap', minWidth: 0 }}>
+                  <span style={{ fontSize: 'clamp(24px, 6vw, 32px)', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--text-primary)', lineHeight: 1 }}>
                     {Math.floor(minutesElapsed / 60)}h {minutesElapsed % 60}m
                   </span>
                   <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
@@ -214,11 +230,11 @@ export const OverviewHub: React.FC<OverviewHubProps> = ({ setActiveTab }) => {
               </div>
 
               {/* Necrosis Counter */}
-              <div style={{ textAlign: 'right' }}>
+              <div style={{ textAlign: isMobile ? 'left' : 'right', minWidth: 0, flex: isMobile ? '1 1 100%' : undefined }}>
                 <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--red-700)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                   Estimated Neuronal Cell Necrosis
                 </span>
-                <div style={{ fontSize: '26px', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--red-600)', lineHeight: 1, marginTop: '2px' }}>
+                <div style={{ fontSize: 'clamp(20px, 5vw, 26px)', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--red-600)', lineHeight: 1, marginTop: '2px' }}>
                   ~{neuronsLostMillions}M <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)' }}>neurons</span>
                 </div>
                 <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>
@@ -239,11 +255,11 @@ export const OverviewHub: React.FC<OverviewHubProps> = ({ setActiveTab }) => {
                 style={{ width: '100%', cursor: 'pointer', height: '6px' }}
                 aria-label="Minutes elapsed since stroke symptom onset"
               />
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px', fontFamily: 'var(--font-mono)' }}>
-                <span>0m (Onset)</span>
-                <span style={{ color: 'var(--green-700)', fontWeight: 600 }}>60m (Door-to-Needle)</span>
-                <span style={{ color: 'var(--blue-700)', fontWeight: 600 }}>270m (4.5h tPA cutoff)</span>
-                <span>360m (6h EVT Target)</span>
+              <div style={isMobile ? { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '4px 10px', fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px', fontFamily: 'var(--font-mono)' } : { display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '4px 10px', fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px', fontFamily: 'var(--font-mono)' }}>
+                <span style={{ minWidth: 0 }}>0m (Onset)</span>
+                <span style={{ color: 'var(--green-700)', fontWeight: 600, minWidth: 0 }}>60m (Door-to-Needle)</span>
+                <span style={{ color: 'var(--blue-700)', fontWeight: 600, minWidth: 0 }}>270m (4.5h tPA cutoff)</span>
+                <span style={{ minWidth: 0 }}>360m (6h EVT Target)</span>
               </div>
             </div>
 
@@ -254,11 +270,11 @@ export const OverviewHub: React.FC<OverviewHubProps> = ({ setActiveTab }) => {
               borderRadius: 'var(--radius-md)',
               padding: '14px 16px'
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                <span style={{ fontSize: '13px', fontWeight: 700, color: treatmentStatus.color }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px', flexWrap: 'wrap', gap: '6px 12px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: treatmentStatus.color, minWidth: 0, flex: '1 1 180px' }}>
                   {treatmentStatus.headline}
                 </span>
-                <span className={`badge ${treatmentStatus.badgeClass}`}>
+                <span className={`badge ${treatmentStatus.badgeClass}`} style={{ flexShrink: 0 }}>
                   {treatmentStatus.badge}
                 </span>
               </div>
@@ -269,14 +285,14 @@ export const OverviewHub: React.FC<OverviewHubProps> = ({ setActiveTab }) => {
 
             {/* Waveform Canvas */}
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px', fontSize: '11px', color: 'var(--text-muted)' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px', fontSize: '11px', color: 'var(--text-muted)', flexWrap: 'wrap', gap: '4px 10px' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '5px', minWidth: 0, flex: '1 1 auto' }}>
                   <HeartPulse size={12} color="var(--blue-600)" />
                   Middle Cerebral Artery (MCA) Doppler Flow Velocity
                 </span>
-                <span style={{ fontFamily: 'var(--font-mono)' }}>64 cm/s · PI 0.86</span>
+                <span style={{ fontFamily: 'var(--font-mono)', flexShrink: 0 }}>64 cm/s · PI 0.86</span>
               </div>
-              <div style={{ height: '48px', overflow: 'hidden', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--bg-surface)' }}>
+              <div style={{ height: '48px', overflow: 'hidden', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--bg-surface)', maxWidth: '100%' }}>
                 <canvas ref={waveformCanvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />
               </div>
             </div>
@@ -284,16 +300,16 @@ export const OverviewHub: React.FC<OverviewHubProps> = ({ setActiveTab }) => {
         </div>
 
         {/* Bento Tile 2 (Right 40%): BE-FAST Interactive Clinical Switchboard */}
-        <div className="bento-tile" style={{ padding: '28px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div className="bento-tile" style={{ padding: isMobile ? '20px 18px' : '28px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0 }}>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '8px 12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: '1 1 200px' }}>
                 <ShieldAlert size={18} color="var(--red-600)" />
                 <h3 style={{ fontSize: '17px', fontWeight: 800 }}>
                   BE-FAST Diagnostic Switchboard
                 </h3>
               </div>
-              <span className="badge badge-danger">AHA/ASA Protocol</span>
+              <span className="badge badge-danger" style={{ flexShrink: 0 }}>AHA/ASA Protocol</span>
             </div>
 
             <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', marginBottom: '18px', lineHeight: 1.5 }}>
@@ -301,7 +317,7 @@ export const OverviewHub: React.FC<OverviewHubProps> = ({ setActiveTab }) => {
             </p>
 
             {/* Selector Buttons */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '6px', marginBottom: '18px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(3, 1fr)' : 'repeat(6, 1fr)', gap: isMobile ? '8px' : '6px', marginBottom: '18px' }}>
               {(['B', 'E', 'F', 'A', 'S', 'T'] as const).map((letter) => {
                 const isSelected = selectedBefast === letter;
                 return (
@@ -309,7 +325,9 @@ export const OverviewHub: React.FC<OverviewHubProps> = ({ setActiveTab }) => {
                     key={letter}
                     onClick={() => setSelectedBefast(letter)}
                     style={{
-                      padding: '10px 0',
+                      padding: isMobile ? '12px 0' : '10px 0',
+                      minHeight: isMobile ? '44px' : undefined,
+                      minWidth: 0,
                       borderRadius: 'var(--radius-md)',
                       fontSize: '15px',
                       fontWeight: 800,
@@ -329,13 +347,14 @@ export const OverviewHub: React.FC<OverviewHubProps> = ({ setActiveTab }) => {
 
             {/* Active Symptom Inspection Card */}
             <div style={{
-              padding: '18px',
+              padding: isMobile ? '16px' : '18px',
               borderRadius: 'var(--radius-md)',
               backgroundColor: 'var(--bg-surface-sub)',
               border: '1px solid var(--glass-border)',
               display: 'flex',
               flexDirection: 'column',
-              gap: '10px'
+              gap: '10px',
+              minWidth: 0
             }}>
               <div>
                 <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--blue-700)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
@@ -369,13 +388,14 @@ export const OverviewHub: React.FC<OverviewHubProps> = ({ setActiveTab }) => {
             </div>
           </div>
 
-          <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>
+          <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px 12px' }}>
+            <span style={{ fontSize: '11.5px', color: 'var(--text-muted)', minWidth: 0, flex: '1 1 160px' }}>
               Emergency dispatch: Immediate non-contrast CT
             </span>
-            <button 
+            <button
               onClick={() => setActiveTab('studio-anatomy')}
               className="btn btn-primary btn-sm"
+              style={{ flexShrink: 0 }}
             >
               <span>Explore 3D Vessels</span>
               <ChevronRight size={14} />
@@ -387,7 +407,7 @@ export const OverviewHub: React.FC<OverviewHubProps> = ({ setActiveTab }) => {
       {/* ── THE 4 CONSOLIDATED CLINICAL STUDIOS GATEWAY ───────────────── */}
       <section>
         <div style={{ marginBottom: '20px' }}>
-          <h2 style={{ fontSize: '22px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text-primary)', marginBottom: '4px' }}>
+          <h2 style={{ fontSize: 'clamp(19px, 2.4vw, 22px)', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text-primary)', marginBottom: '4px' }}>
             Clinical Studios & Simulation Suites
           </h2>
           <p style={{ fontSize: '13.5px', color: 'var(--text-muted)' }}>
@@ -395,7 +415,7 @@ export const OverviewHub: React.FC<OverviewHubProps> = ({ setActiveTab }) => {
           </p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '20px' }}>
           
           {/* Studio 1: Vascular 3D & Acute Clock */}
           <div 

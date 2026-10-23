@@ -13,9 +13,13 @@ import {
   createCerebellumGeometry,
   createBrainstemGeometry
 } from '../../utils/brain3D/proceduralAnatomy';
+import { useMediaQuery, useResponsive } from '../../hooks/useResponsive';
 
 export const AIBrainDigitalTwin: React.FC = () => {
   const mountRef = useRef<HTMLDivElement>(null);
+  const isStacked = useMediaQuery('(max-width: 1024px)');
+  const { isMobile } = useResponsive();
+  const viewportHeight = isMobile ? 300 : 420;
 
   // Patient Profile Biometrics
   const [age, setAge] = useState<number>(52);
@@ -68,8 +72,8 @@ export const AIBrainDigitalTwin: React.FC = () => {
     const container = mountRef.current;
     if (!container) return;
 
-    const width = container.clientWidth;
-    const height = 500;
+    const width = container.clientWidth || 420;
+    const height = container.clientHeight || (window.innerWidth <= 640 ? 300 : 420);
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color('#ffffff');
@@ -162,6 +166,22 @@ export const AIBrainDigitalTwin: React.FC = () => {
       wmhGroup.add(dot);
     }
 
+    // Basic resize handling: keep renderer + camera in sync with container
+    const handleResize = () => {
+      const nextWidth = container.clientWidth || width;
+      const nextHeight = container.clientHeight || height;
+      if (nextWidth <= 0 || nextHeight <= 0) return;
+      camera.aspect = nextWidth / nextHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(nextWidth, nextHeight);
+    };
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(handleResize);
+      resizeObserver.observe(container);
+    }
+    window.addEventListener('resize', handleResize);
+
     // Animation Loop
     let animId: number;
     const animate = () => {
@@ -173,6 +193,8 @@ export const AIBrainDigitalTwin: React.FC = () => {
 
     return () => {
       cancelAnimationFrame(animId);
+      window.removeEventListener('resize', handleResize);
+      if (resizeObserver) resizeObserver.disconnect();
       controls.dispose();
       renderer.dispose();
     };
@@ -184,7 +206,7 @@ export const AIBrainDigitalTwin: React.FC = () => {
       <div className="glass-card" style={{ padding: '28px 32px' }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '20px' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px', flexWrap: 'wrap' }}>
               <span className="badge badge-primary">
                 <Brain size={13} /> AI Generative 4D Brain Twin
               </span>
@@ -205,13 +227,13 @@ export const AIBrainDigitalTwin: React.FC = () => {
       {/* Main Grid: Biometric Sliders & 3D Morphing Model */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'minmax(340px, 1fr) minmax(420px, 1.4fr)',
+        gridTemplateColumns: isStacked ? '1fr' : 'minmax(340px, 1fr) minmax(420px, 1.4fr)',
         gap: '24px'
       }}>
         {/* Left Column: Biometric Inputs & Lifestyle Toggles */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', minWidth: 0 }}>
           {/* Biomarkers Sliders Card */}
-          <div className="glass-card" style={{ padding: '22px' }}>
+          <div className="glass-card" style={{ padding: '22px', minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
               <Sliders size={16} color="var(--blue-600)" />
               <h3 style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)', textTransform: 'uppercase' }}>
@@ -292,11 +314,11 @@ export const AIBrainDigitalTwin: React.FC = () => {
               </div>
 
               {/* Smoking & Sleep Apnea Toggles */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '10px' }}>
                 <button
                   onClick={() => setIsSmoker(!isSmoker)}
                   className={`btn btn-sm ${isSmoker ? 'btn-danger' : 'btn-secondary'}`}
-                  style={{ fontSize: '11.5px', padding: '8px' }}
+                  style={{ fontSize: '11.5px', padding: '8px', whiteSpace: 'normal', height: 'auto', lineHeight: 1.3 }}
                 >
                   <Cigarette size={13} /> {isSmoker ? 'Active Smoker (+8y)' : 'Non-Smoker'}
                 </button>
@@ -304,7 +326,7 @@ export const AIBrainDigitalTwin: React.FC = () => {
                 <button
                   onClick={() => setSleepApnea(sleepApnea === 'severe' ? 'none' : 'severe')}
                   className={`btn btn-sm ${sleepApnea === 'severe' ? 'btn-danger' : 'btn-secondary'}`}
-                  style={{ fontSize: '11.5px', padding: '8px' }}
+                  style={{ fontSize: '11.5px', padding: '8px', whiteSpace: 'normal', height: 'auto', lineHeight: 1.3 }}
                 >
                   <Moon size={13} /> {sleepApnea === 'severe' ? 'Sleep Apnea (+6y)' : 'Normal Sleep'}
                 </button>
@@ -371,10 +393,10 @@ export const AIBrainDigitalTwin: React.FC = () => {
         {/* Right Column: 3D Brain Twin Viewport & Predictive Verdict */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {/* Comparative Metrics Banner */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-            <div className="glass-card" style={{ padding: '16px', textAlign: 'center' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '12px' }}>
+            <div className="glass-card" style={{ padding: isMobile ? '12px' : '16px', textAlign: 'center' }}>
               <span style={{ fontSize: '11px', color: 'var(--text-subtle)', fontWeight: 600 }}>Biological Vascular Age</span>
-              <div style={{ fontSize: '26px', fontWeight: 800, color: ageDelta > 0 ? '#e11d48' : '#059669', fontFamily: 'var(--font-mono)' }}>
+              <div style={{ fontSize: isMobile ? 'clamp(20px, 6vw, 26px)' : '26px', fontWeight: 800, color: ageDelta > 0 ? '#e11d48' : '#059669', fontFamily: 'var(--font-mono)' }}>
                 {adjustedVascularAge} yrs
               </div>
               <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
@@ -382,9 +404,9 @@ export const AIBrainDigitalTwin: React.FC = () => {
               </span>
             </div>
 
-            <div className="glass-card" style={{ padding: '16px', textAlign: 'center' }}>
+            <div className="glass-card" style={{ padding: isMobile ? '12px' : '16px', textAlign: 'center' }}>
               <span style={{ fontSize: '11px', color: 'var(--text-subtle)', fontWeight: 600 }}>10-Yr Stroke Hazard</span>
-              <div style={{ fontSize: '26px', fontWeight: 800, color: strokeRiskPercent > 20 ? '#be123c' : '#0284c7', fontFamily: 'var(--font-mono)' }}>
+              <div style={{ fontSize: isMobile ? 'clamp(20px, 6vw, 26px)' : '26px', fontWeight: 800, color: strokeRiskPercent > 20 ? '#be123c' : '#0284c7', fontFamily: 'var(--font-mono)' }}>
                 {strokeRiskPercent}%
               </div>
               <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
@@ -392,9 +414,9 @@ export const AIBrainDigitalTwin: React.FC = () => {
               </span>
             </div>
 
-            <div className="glass-card" style={{ padding: '16px', textAlign: 'center' }}>
+            <div className="glass-card" style={{ padding: isMobile ? '12px' : '16px', textAlign: 'center' }}>
               <span style={{ fontSize: '11px', color: 'var(--text-subtle)', fontWeight: 600 }}>Reclaimed Brain Years</span>
-              <div style={{ fontSize: '26px', fontWeight: 800, color: '#059669', fontFamily: 'var(--font-mono)' }}>
+              <div style={{ fontSize: isMobile ? 'clamp(20px, 6vw, 26px)' : '26px', fontWeight: 800, color: '#059669', fontFamily: 'var(--font-mono)' }}>
                 -{yearsReclaimed.toFixed(1)} yrs
               </div>
               <span style={{ fontSize: '11px', color: '#15803d', fontWeight: 600 }}>
@@ -410,6 +432,8 @@ export const AIBrainDigitalTwin: React.FC = () => {
               backgroundColor: '#ffffff',
               borderBottom: '1px solid var(--glass-border)',
               display: 'flex',
+              flexWrap: 'wrap',
+              gap: '8px',
               alignItems: 'center',
               justifyContent: 'space-between'
             }}>
@@ -425,7 +449,8 @@ export const AIBrainDigitalTwin: React.FC = () => {
               ref={mountRef}
               style={{
                 width: '100%',
-                height: '420px',
+                height: `${viewportHeight}px`,
+                maxWidth: '100%',
                 position: 'relative',
                 cursor: 'grab',
                 backgroundColor: '#ffffff'
@@ -439,6 +464,8 @@ export const AIBrainDigitalTwin: React.FC = () => {
               fontSize: '12px',
               color: 'var(--text-muted)',
               display: 'flex',
+              flexWrap: 'wrap',
+              gap: '8px',
               justifyContent: 'space-between'
             }}>
               <span>Drag to orbit 360° • Yellow dots represent subclinical leukoaraiosis</span>

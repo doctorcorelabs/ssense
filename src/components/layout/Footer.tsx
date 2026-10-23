@@ -1,12 +1,15 @@
 import React from 'react';
 import { ShieldAlert, BookOpen, ExternalLink, Brain } from 'lucide-react';
+import { useResponsive } from '../../hooks/useResponsive';
 
 export const Footer: React.FC = () => {
+  const { isMobile, isTabletPortrait } = useResponsive();
+
   return (
     <footer style={{
       borderTop: '1px solid var(--glass-border)',
       backgroundColor: 'var(--bg-surface)',
-      padding: '48px 0 32px',
+      padding: isMobile ? '32px 0 96px' : '48px 0 32px',
       marginTop: 'auto',
       boxShadow: '0 -1px 3px rgba(15, 23, 42, 0.02)'
     }}>
@@ -16,14 +19,15 @@ export const Footer: React.FC = () => {
           backgroundColor: 'var(--red-50)',
           border: '1px solid var(--red-200)',
           borderRadius: 'var(--radius-lg)',
-          padding: '20px 24px',
-          marginBottom: '36px',
+          padding: isMobile ? '14px 16px' : '20px 24px',
+          marginBottom: isMobile ? '28px' : '36px',
           display: 'flex',
-          gap: '16px',
+          flexDirection: isMobile ? 'column' : 'row',
+          gap: isMobile ? '8px' : '16px',
           alignItems: 'flex-start',
         }}>
           <ShieldAlert size={22} color="var(--red-600)" style={{ flexShrink: 0, marginTop: '2px' }} />
-          <div>
+          <div style={{ minWidth: 0 }}>
             <h4 style={{ color: 'var(--red-700)', fontSize: '14px', fontWeight: 700, marginBottom: '4px' }}>
               Clinical &amp; Educational Notice
             </h4>
@@ -33,9 +37,18 @@ export const Footer: React.FC = () => {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '32px', marginBottom: '36px' }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile
+            ? '1fr'
+            : isTabletPortrait
+              ? 'repeat(auto-fit, minmax(200px, 1fr))'
+              : 'repeat(auto-fit, minmax(240px, 1fr))',
+          gap: isMobile ? '24px' : '32px',
+          marginBottom: isMobile ? '28px' : '36px'
+        }}>
           {/* Brand */}
-          <div>
+          <div style={{ minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
               <div style={{
                 width: '32px', height: '32px', borderRadius: '8px',
@@ -56,7 +69,7 @@ export const Footer: React.FC = () => {
           </div>
 
           {/* References */}
-          <div>
+          <div style={{ minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
               <BookOpen size={16} color="var(--blue-600)" />
               <h5 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>Clinical References</h5>
@@ -77,7 +90,7 @@ export const Footer: React.FC = () => {
           </div>
 
           {/* Stack */}
-          <div>
+          <div style={{ minWidth: 0 }}>
             <h5 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '12px' }}>Technical Architecture</h5>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
               {['React 18', 'TypeScript', 'Three.js WebGL', 'Vite', 'MediaPipe Hands', 'Cloudflare Worker', 'OpenRouter AI'].map((t) => (
@@ -92,7 +105,9 @@ export const Footer: React.FC = () => {
           borderTop: '1px solid var(--glass-border)',
           paddingTop: '20px',
           display: 'flex', flexWrap: 'wrap',
-          alignItems: 'center', justifyContent: 'space-between',
+          flexDirection: isMobile ? 'column' : 'row',
+          alignItems: isMobile ? 'flex-start' : 'center',
+          justifyContent: 'space-between',
           fontSize: '12px', color: 'var(--text-muted)', gap: '10px',
         }}>
           <p>© {new Date().getFullYear()} StrokeSense Dossier. All rights reserved.</p>

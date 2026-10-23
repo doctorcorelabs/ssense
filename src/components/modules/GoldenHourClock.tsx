@@ -12,8 +12,10 @@ import {
   Stethoscope,
   Flame
 } from 'lucide-react';
+import { useResponsive } from '../../hooks/useResponsive';
 
 export const GoldenHourClock: React.FC = () => {
+  const { isMobile, isTabletPortrait } = useResponsive();
   // Time in minutes (0 to 360, default at 80 mins / 1.33 hours)
   const [minutes, setMinutes] = useState<number>(80);
 
@@ -68,11 +70,11 @@ export const GoldenHourClock: React.FC = () => {
           padding: '0', 
           overflow: 'hidden',
           display: 'grid',
-          gridTemplateColumns: 'minmax(320px, 1.2fr) minmax(280px, 0.8fr)',
+          gridTemplateColumns: isTabletPortrait ? '1fr' : 'minmax(320px, 1.2fr) minmax(280px, 0.8fr)',
         }}
       >
-        <div style={{ padding: '36px 36px 32px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+        <div style={{ padding: isMobile ? '24px 20px 20px' : '36px 36px 32px' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
             <span className="badge badge-danger">
               <Flame size={13} /> Time is Brain Protocol
             </span>
@@ -111,7 +113,7 @@ export const GoldenHourClock: React.FC = () => {
         </div>
 
         {/* Photorealistic 3D Clot Asset Visual */}
-        <div style={{ position: 'relative', minHeight: '260px', overflow: 'hidden' }}>
+        <div style={{ position: 'relative', minHeight: isMobile ? '180px' : '260px', overflow: 'hidden' }}>
           <img 
             src="/assets/ischemic_clot_vessel.jpg" 
             alt="Arterial Thrombus Obstructing Blood Flow in Cerebral Vessel" 
@@ -195,7 +197,8 @@ export const GoldenHourClock: React.FC = () => {
           {/* Time Milestone Pins */}
           <div style={{ 
             display: 'grid', 
-            gridTemplateColumns: 'repeat(5, 1fr)', 
+            gridTemplateColumns: isMobile ? 'repeat(auto-fit, minmax(120px, 1fr))' : 'repeat(5, 1fr)',
+            gap: isMobile ? '12px' : '0px',
             marginTop: '12px', 
             fontSize: '12px',
             textAlign: 'center'
@@ -347,8 +350,9 @@ export const GoldenHourClock: React.FC = () => {
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '14px' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px' }}>
             <div style={{
+              flex: '1 1 140px',
               padding: '12px 18px',
               backgroundColor: '#fff1f2',
               borderRadius: 'var(--radius-md)',
@@ -363,6 +367,7 @@ export const GoldenHourClock: React.FC = () => {
             </div>
 
             <div style={{
+              flex: '1 1 140px',
               padding: '12px 18px',
               backgroundColor: '#ecfeff',
               borderRadius: 'var(--radius-md)',
@@ -377,6 +382,7 @@ export const GoldenHourClock: React.FC = () => {
             </div>
 
             <div style={{
+              flex: '1 1 140px',
               padding: '12px 18px',
               backgroundColor: Number(mismatchRatio) >= 1.8 ? '#f0fdf4' : '#fffbeb',
               borderRadius: 'var(--radius-md)',
@@ -395,8 +401,8 @@ export const GoldenHourClock: React.FC = () => {
         {/* Anatomical Axial CT Slice Canvas Graphics */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'minmax(280px, 340px) 1fr',
-          gap: '32px',
+          gridTemplateColumns: isTabletPortrait ? '1fr' : 'minmax(280px, 340px) 1fr',
+          gap: isTabletPortrait ? '20px' : '32px',
           alignItems: 'center'
         }}>
           {/* Simulated CT Scan Slice Display */}
@@ -463,12 +469,12 @@ export const GoldenHourClock: React.FC = () => {
 
               {/* Clot obstruction marker */}
               <circle cx="120" cy="150" r="4.5" fill="#ffffff" stroke="#e11d48" strokeWidth="2" />
-              <text x="126" y="146" fill="#f8fafc" fontSize="9" fontWeight="bold">M1 LVO</text>
+              <text x="126" y="146" fill="#f8fafc" fontSize="11" fontWeight="bold">M1 LVO</text>
 
               {/* Annotations */}
-              <text x="35" y="45" fill="#94a3b8" fontSize="10" fontFamily="monospace">AXIAL CT PERFUSION</text>
-              <text x="35" y="60" fill="#38bdf8" fontSize="9" fontFamily="monospace">RAPID-CTP AUTOMATED</text>
-              <text x="220" y="45" fill="#f43f5e" fontSize="10" fontFamily="monospace">R-HEMISPHERE</text>
+              <text x="35" y="45" fill="#94a3b8" fontSize="11" fontFamily="monospace">AXIAL CT PERFUSION</text>
+              <text x="35" y="60" fill="#38bdf8" fontSize="11" fontFamily="monospace">RAPID-CTP AUTOMATED</text>
+              <text x="220" y="45" fill="#f43f5e" fontSize="11" fontFamily="monospace">R-HEMISPHERE</text>
             </svg>
 
             {/* Scan Overlay Metadata Box */}
@@ -482,6 +488,8 @@ export const GoldenHourClock: React.FC = () => {
               padding: '6px 10px',
               borderRadius: 'var(--radius-sm)',
               display: 'flex',
+              flexWrap: 'wrap',
+              gap: '4px 12px',
               justifyContent: 'space-between',
               fontSize: '11px',
               color: '#cbd5e1',
@@ -533,7 +541,7 @@ export const GoldenHourClock: React.FC = () => {
             </div>
 
             {/* Step-by-Step Triage Checklist */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px' }}>
               <div style={{
                 padding: '12px 16px',
                 backgroundColor: 'var(--bg-raised)',

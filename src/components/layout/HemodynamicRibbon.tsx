@@ -8,6 +8,7 @@ import {
   Volume2,
   VolumeX
 } from 'lucide-react';
+import { useResponsive } from '../../hooks/useResponsive';
 
 interface HemodynamicRibbonProps {
   onOpenAspects: () => void;
@@ -18,6 +19,11 @@ export const HemodynamicRibbon: React.FC<HemodynamicRibbonProps> = ({
   onOpenAspects,
   onOpenCircleOfWillis
 }) => {
+  const { isMobile, isSmallPhone, isTabletPortrait, isTablet } = useResponsive();
+  // Touch-friendly sizing below desktop; desktop (>1180px) keeps original values.
+  const ribbonBtnMinHeight = isMobile ? 44 : isTablet ? 40 : undefined;
+  const ribbonBtnPadding = isMobile ? '10px 6px' : isTablet ? '8px 10px' : '3px 8px';
+
   // Theme state
   const [isCathLabTheme, setIsCathLabTheme] = useState<boolean>(() => {
     return localStorage.getItem('strokesense_theme') === 'cath-lab';
@@ -178,24 +184,38 @@ export const HemodynamicRibbon: React.FC<HemodynamicRibbonProps> = ({
     }}>
       <div className="container" style={{
         display: 'flex',
-        alignItems: 'center',
+        alignItems: isTabletPortrait ? 'stretch' : 'center',
         justifyContent: 'space-between',
+        flexDirection: isTabletPortrait ? 'column' : 'row',
         flexWrap: 'wrap',
-        gap: '12px'
+        gap: '12px',
+        minWidth: 0
       }}>
         {/* Left: Perfusion Waveform & State Switcher */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+        <div style={{
+          display: 'flex',
+          alignItems: isMobile ? 'stretch' : 'center',
+          flexDirection: isMobile ? 'column' : 'row',
+          gap: '12px',
+          flexWrap: 'wrap',
+          minWidth: 0,
+          maxWidth: '100%',
+          width: isTabletPortrait ? '100%' : undefined,
+          flex: isTablet ? '1 1 auto' : undefined
+        }}>
           {/* Living Doppler Canvas Waveform */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
             backgroundColor: 'var(--bg-canvas)',
-            padding: '3px 10px',
+            padding: isMobile ? '6px 10px' : '3px 10px',
             borderRadius: 'var(--radius-sm)',
-            border: '1px solid var(--glass-border)'
+            border: '1px solid var(--glass-border)',
+            maxWidth: '100%',
+            alignSelf: isMobile ? 'flex-start' : undefined
           }}>
-            <canvas ref={canvasRef} width={80} height={24} style={{ display: 'block' }} />
+            <canvas ref={canvasRef} width={isSmallPhone ? 56 : 80} height={24} style={{ display: 'block' }} />
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <span style={{ fontSize: '10px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font-mono)', lineHeight: 1.1 }}>
                 TCD Doppler
@@ -208,17 +228,23 @@ export const HemodynamicRibbon: React.FC<HemodynamicRibbonProps> = ({
             {/* Doppler Audio Toggle */}
             <button
               onClick={toggleAudio}
+              aria-label={isAudioMuted ? 'Unmute Transcranial Doppler Synthesizer' : 'Mute TCD Audio'}
               style={{
                 background: 'none',
                 border: 'none',
                 cursor: 'pointer',
                 color: isAudioMuted ? 'var(--text-muted)' : '#0284c7',
-                padding: '2px',
-                display: 'flex'
+                padding: isTablet ? '10px' : '2px',
+                minWidth: isTablet ? '40px' : undefined,
+                minHeight: isTablet ? '40px' : undefined,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0
               }}
               title={isAudioMuted ? 'Unmute Transcranial Doppler Synthesizer' : 'Mute TCD Audio'}
             >
-              {isAudioMuted ? <VolumeX size={13} /> : <Volume2 size={13} />}
+              {isAudioMuted ? <VolumeX size={isMobile ? 16 : 13} /> : <Volume2 size={isMobile ? 16 : 13} />}
             </button>
           </div>
 
@@ -230,12 +256,18 @@ export const HemodynamicRibbon: React.FC<HemodynamicRibbonProps> = ({
             padding: '2px',
             borderRadius: 'var(--radius-sm)',
             border: '1px solid var(--glass-border)',
-            gap: '2px'
+            gap: '2px',
+            flexWrap: isTablet ? 'wrap' : undefined,
+            width: isMobile ? '100%' : undefined,
+            maxWidth: '100%',
+            minWidth: 0
           }}>
             <button
               onClick={() => setHemoState('normal')}
               style={{
-                padding: '3px 8px',
+                padding: ribbonBtnPadding,
+                minHeight: ribbonBtnMinHeight,
+                flex: isMobile ? '1 1 0' : undefined,
                 borderRadius: '4px',
                 border: 'none',
                 fontSize: '11px',
@@ -243,15 +275,18 @@ export const HemodynamicRibbon: React.FC<HemodynamicRibbonProps> = ({
                 backgroundColor: hemoState === 'normal' ? '#10b981' : 'transparent',
                 color: hemoState === 'normal' ? '#ffffff' : 'var(--text-secondary)',
                 cursor: 'pointer',
-                transition: 'all 0.15s ease'
+                transition: 'all 0.15s ease',
+                whiteSpace: 'nowrap'
               }}
             >
-              Normal Perfusion
+              {isMobile ? 'Normal' : 'Normal Perfusion'}
             </button>
             <button
               onClick={() => setHemoState('acute-lvo')}
               style={{
-                padding: '3px 8px',
+                padding: ribbonBtnPadding,
+                minHeight: ribbonBtnMinHeight,
+                flex: isMobile ? '1 1 0' : undefined,
                 borderRadius: '4px',
                 border: 'none',
                 fontSize: '11px',
@@ -262,10 +297,12 @@ export const HemodynamicRibbon: React.FC<HemodynamicRibbonProps> = ({
                 transition: 'all 0.15s ease',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '4px'
+                justifyContent: 'center',
+                gap: '4px',
+                whiteSpace: 'nowrap'
               }}
             >
-              <span>Acute LVO Occlusion</span>
+              <span>{isMobile ? 'Acute LVO' : 'Acute LVO Occlusion'}</span>
               {hemoState === 'acute-lvo' && (
                 <span className="pulse-active pulse-danger" style={{ width: '4px', height: '4px' }}></span>
               )}
@@ -273,7 +310,9 @@ export const HemodynamicRibbon: React.FC<HemodynamicRibbonProps> = ({
             <button
               onClick={() => setHemoState('post-evt')}
               style={{
-                padding: '3px 8px',
+                padding: ribbonBtnPadding,
+                minHeight: ribbonBtnMinHeight,
+                flex: isMobile ? '1 1 0' : undefined,
                 borderRadius: '4px',
                 border: 'none',
                 fontSize: '11px',
@@ -281,10 +320,11 @@ export const HemodynamicRibbon: React.FC<HemodynamicRibbonProps> = ({
                 backgroundColor: hemoState === 'post-evt' ? '#0284c7' : 'transparent',
                 color: hemoState === 'post-evt' ? '#ffffff' : 'var(--text-secondary)',
                 cursor: 'pointer',
-                transition: 'all 0.15s ease'
+                transition: 'all 0.15s ease',
+                whiteSpace: 'nowrap'
               }}
             >
-              TICI 3 Reperfusion
+              {isMobile ? 'TICI 3' : 'TICI 3 Reperfusion'}
             </button>
           </div>
 
@@ -294,41 +334,72 @@ export const HemodynamicRibbon: React.FC<HemodynamicRibbonProps> = ({
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              padding: '2px 10px',
+              padding: isMobile ? '8px 10px' : '2px 10px',
               backgroundColor: 'rgba(225, 29, 72, 0.1)',
               borderRadius: 'var(--radius-sm)',
               border: '1px solid rgba(225, 29, 72, 0.25)',
               fontSize: '11.5px',
-              color: '#e11d48'
+              color: '#e11d48',
+              flexWrap: 'wrap',
+              width: isMobile ? '100%' : undefined,
+              maxWidth: '100%',
+              minWidth: 0,
+              fontVariantNumeric: 'tabular-nums'
             }}>
-              <Clock size={12} />
-              <span><strong>Time is Brain:</strong> {(neuronsLost / 1000000).toFixed(2)}M neurons &amp; {(synapsesLost / 1000000000).toFixed(1)}B synapses lost ({elapsedSeconds}s)</span>
+              <Clock size={12} style={{ flexShrink: 0 }} />
+              {isMobile ? (
+                <span><strong>Time is Brain:</strong> {(neuronsLost / 1000000).toFixed(2)}M neurons lost ({elapsedSeconds}s)</span>
+              ) : (
+                <span><strong>Time is Brain:</strong> {(neuronsLost / 1000000).toFixed(2)}M neurons &amp; {(synapsesLost / 1000000000).toFixed(1)}B synapses lost ({elapsedSeconds}s)</span>
+              )}
             </div>
           )}
         </div>
 
         {/* Right: Quick Launch Interactive Modals & Cath Lab Theme Switch */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          flexWrap: isTablet ? 'wrap' : undefined,
+          width: isTabletPortrait ? '100%' : undefined,
+          maxWidth: '100%',
+          minWidth: 0
+        }}>
           {/* Circle of Willis Flow Modal Trigger */}
           <button
             onClick={onOpenCircleOfWillis}
             className="btn btn-secondary btn-sm"
-            style={{ fontSize: '11px', padding: '3px 9px', display: 'flex', alignItems: 'center', gap: '4px' }}
+            style={{
+              fontSize: '11px',
+              padding: isMobile ? '10px 8px' : isTablet ? '8px 12px' : '3px 9px',
+              minHeight: isMobile ? 44 : isTablet ? 40 : undefined,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
+              flex: isMobile ? '1 1 0' : undefined,
+              whiteSpace: 'nowrap'
+            }}
             title="Open Interactive Circle of Willis Collateral Flow Simulator"
           >
             <GitBranch size={12} color="#0284c7" />
-            <span>Circle of Willis</span>
+            <span>{isSmallPhone ? 'Willis' : 'Circle of Willis'}</span>
           </button>
 
           {/* ASPECTS CT Heatmap Trigger */}
           <button
             onClick={onOpenAspects}
             className="btn btn-secondary btn-sm"
-            style={{ fontSize: '11px', padding: '3px 9px', display: 'flex', alignItems: 'center', gap: '4px' }}
+            style={{
+              fontSize: '11px',
+              padding: isMobile ? '10px 8px' : isTablet ? '8px 12px' : '3px 9px',
+              minHeight: isMobile ? 44 : isTablet ? 40 : undefined,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
+              flex: isMobile ? '1 1 0' : undefined,
+              whiteSpace: 'nowrap'
+            }}
             title="Open Alberta Stroke Program Early CT Score (ASPECTS) Calculator"
           >
             <Layers size={12} color="#e11d48" />
-            <span>ASPECTS 10 CT</span>
+            <span>{isSmallPhone ? 'ASPECTS' : 'ASPECTS 10 CT'}</span>
           </button>
 
           {/* Cath Lab / Fluoroscopy Dark Mode Toggle */}
@@ -337,8 +408,11 @@ export const HemodynamicRibbon: React.FC<HemodynamicRibbonProps> = ({
             style={{
               display: 'inline-flex',
               alignItems: 'center',
+              justifyContent: 'center',
               gap: '5px',
-              padding: '3px 10px',
+              padding: isMobile ? '10px 8px' : isTablet ? '8px 12px' : '3px 10px',
+              minHeight: isMobile ? 44 : isTablet ? 40 : undefined,
+              flex: isMobile ? '1 1 100%' : undefined,
               borderRadius: 'var(--radius-sm)',
               backgroundColor: isCathLabTheme ? 'rgba(56, 189, 248, 0.15)' : 'var(--bg-canvas)',
               border: `1px solid ${isCathLabTheme ? 'rgba(56, 189, 248, 0.4)' : 'var(--glass-border)'}`,
@@ -346,7 +420,8 @@ export const HemodynamicRibbon: React.FC<HemodynamicRibbonProps> = ({
               fontSize: '11px',
               fontWeight: 600,
               cursor: 'pointer',
-              transition: 'all 0.15s ease'
+              transition: 'all 0.15s ease',
+              whiteSpace: 'nowrap'
             }}
             title={isCathLabTheme ? 'Switch to Swiss Bio-Clinical Light Mode' : 'Switch to Cath Lab Fluoroscopy Dark Mode'}
           >

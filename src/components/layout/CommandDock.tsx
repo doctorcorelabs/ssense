@@ -1,12 +1,13 @@
 import React, { useEffect } from 'react';
-import { 
-  Home, 
-  Brain, 
-  Eye, 
-  Hand, 
+import {
+  Home,
+  Brain,
+  Eye,
+  Hand,
   Sparkles
 } from 'lucide-react';
 import type { ActiveTab } from '../../types/stroke';
+import { useResponsive } from '../../hooks/useResponsive';
 
 interface CommandDockProps {
   activeTab: ActiveTab;
@@ -23,6 +24,8 @@ interface DockItem {
 }
 
 export const CommandDock: React.FC<CommandDockProps> = ({ activeTab, setActiveTab }) => {
+  const { isMobile, isSmallPhone, isTablet } = useResponsive();
+
   const items: DockItem[] = [
     {
       id: 'overview',
@@ -94,9 +97,10 @@ export const CommandDock: React.FC<CommandDockProps> = ({ activeTab, setActiveTa
   };
 
   return (
-    <nav 
+    <nav
       aria-label="Floating Studio Navigation"
       className="command-dock"
+      style={isMobile ? { width: 'calc(100vw - 16px)' } : undefined}
     >
       {items.map((item) => {
         const Icon = item.icon;
@@ -106,35 +110,45 @@ export const CommandDock: React.FC<CommandDockProps> = ({ activeTab, setActiveTa
           <button
             key={item.id}
             onClick={() => setActiveTab(item.id)}
+            aria-label={item.label}
+            aria-current={active ? 'page' : undefined}
             style={{
               display: 'flex',
+              flexDirection: isMobile ? 'column' : 'row',
               alignItems: 'center',
-              gap: '6px',
-              padding: '8px 14px',
+              justifyContent: 'center',
+              flex: isMobile ? '1 1 0' : undefined,
+              minWidth: isMobile ? '44px' : undefined,
+              minHeight: isMobile ? '48px' : isTablet ? '44px' : undefined,
+              gap: isMobile ? '2px' : '6px',
+              padding: isMobile ? '6px 2px' : isTablet ? '10px 12px' : '8px 14px',
               borderRadius: 'var(--radius-full)',
-              fontSize: '12.5px',
+              fontSize: isMobile ? '10.5px' : '12.5px',
               fontWeight: active ? 700 : 500,
               color: active ? '#FFFFFF' : 'var(--text-secondary)',
               backgroundColor: active ? item.activeColor : 'transparent',
               boxShadow: active ? '0 2px 8px rgba(37, 99, 235, 0.25)' : 'none',
               transition: 'all 0.18s cubic-bezier(0.16, 1, 0.3, 1)',
-              position: 'relative'
+              position: 'relative',
+              whiteSpace: 'nowrap'
             }}
             title={`${item.label} (Press ${item.shortcut})`}
           >
-            <Icon size={15} color={active ? '#FFFFFF' : 'currentColor'} />
-            <span>{item.shortLabel}</span>
-            <span style={{
-              fontSize: '9.5px',
-              fontFamily: 'var(--font-mono)',
-              padding: '1px 5px',
-              borderRadius: '4px',
-              backgroundColor: active ? 'rgba(255, 255, 255, 0.22)' : 'var(--bg-surface-sub)',
-              color: active ? '#FFFFFF' : 'var(--text-muted)',
-              marginLeft: '2px'
-            }}>
-              {item.shortcut}
-            </span>
+            <Icon size={isMobile ? 17 : 15} color={active ? '#FFFFFF' : 'currentColor'} />
+            {!isSmallPhone && <span>{item.shortLabel}</span>}
+            {!isMobile && (
+              <span style={{
+                fontSize: '9.5px',
+                fontFamily: 'var(--font-mono)',
+                padding: '1px 5px',
+                borderRadius: '4px',
+                backgroundColor: active ? 'rgba(255, 255, 255, 0.22)' : 'var(--bg-surface-sub)',
+                color: active ? '#FFFFFF' : 'var(--text-muted)',
+                marginLeft: '2px'
+              }}>
+                {item.shortcut}
+              </span>
+            )}
           </button>
         );
       })}

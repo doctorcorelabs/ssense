@@ -1,8 +1,9 @@
-import { 
-  Brain, 
+import {
+  Brain,
   ShieldAlert
 } from 'lucide-react';
 import type { ActiveTab } from '../../types/stroke';
+import { useResponsive } from '../../hooks/useResponsive';
 
 interface NavbarProps {
   activeTab: ActiveTab;
@@ -10,6 +11,8 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ activeTab: _activeTab, setActiveTab }) => {
+  const { isMobile, isSmallPhone, isTablet } = useResponsive();
+
   return (
     <header style={{
       position: 'sticky',
@@ -25,13 +28,24 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab: _activeTab, setActive
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        height: '64px',
-        gap: '16px'
+        minHeight: isMobile ? '56px' : '64px',
+        height: isMobile ? '56px' : '64px',
+        gap: isMobile ? '8px' : '16px',
+        flexWrap: 'nowrap',
+        minWidth: 0
       }}>
         {/* Brand */}
         <div
           onClick={() => setActiveTab('overview')}
-          style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', flexShrink: 0 }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: isMobile ? '8px' : '12px',
+            cursor: 'pointer',
+            flexShrink: 0,
+            minHeight: '44px',
+            minWidth: 0
+          }}
         >
           <div style={{
             width: '38px',
@@ -43,69 +57,84 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab: _activeTab, setActive
             alignItems: 'center',
             justifyContent: 'center',
             color: 'var(--blue-600)',
-            boxShadow: '0 1px 3px rgba(37, 99, 235, 0.12)'
+            boxShadow: '0 1px 3px rgba(37, 99, 235, 0.12)',
+            flexShrink: 0
           }}>
             <Brain size={20} />
           </div>
-          <div>
+          <div style={{ minWidth: 0 }}>
             <div style={{
               fontFamily: 'var(--font-display)',
               fontSize: '18px',
               fontWeight: 800,
               letterSpacing: '-0.03em',
               color: 'var(--text-primary)',
-              lineHeight: 1.15
+              lineHeight: 1.15,
+              whiteSpace: 'nowrap'
             }}>
               Stroke<span style={{ color: 'var(--blue-600)' }}>Sense</span>
             </div>
-            <p style={{ 
-              fontSize: '11px', 
-              color: 'var(--text-muted)', 
-              fontWeight: 500,
-              letterSpacing: '-0.01em' 
-            }}>
-              Clinical Neurovascular Dossier
-            </p>
+            {!isMobile && (
+              <p style={{
+                fontSize: '11px',
+                color: 'var(--text-muted)',
+                fontWeight: 500,
+                letterSpacing: '-0.01em',
+                whiteSpace: 'nowrap'
+              }}>
+                Clinical Neurovascular Dossier
+              </p>
+            )}
           </div>
         </div>
 
         {/* Center: Quick Acute Protocol Pill */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
           <button
             onClick={() => setActiveTab('overview')}
+            aria-label="Acute BE-FAST Protocol"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
+              justifyContent: 'center',
               gap: '6px',
-              padding: '5px 12px',
+              padding: isTablet ? '10px 12px' : '5px 12px',
+              minHeight: isTablet ? '44px' : undefined,
               borderRadius: 'var(--radius-full)',
               backgroundColor: 'var(--red-50)',
               border: '1px solid var(--red-200)',
               color: 'var(--red-700)',
               fontSize: '12px',
               fontWeight: 600,
-              transition: 'all 0.15s ease'
+              transition: 'all 0.15s ease',
+              whiteSpace: 'nowrap',
+              flexShrink: 0
             }}
             title="Jump to Acute BE-FAST Evaluation"
           >
             <ShieldAlert size={13} color="var(--red-600)" />
-            <span>Acute BE-FAST Protocol</span>
+            {!isSmallPhone && (
+              <span>{isMobile ? 'BE-FAST' : 'Acute BE-FAST Protocol'}</span>
+            )}
             <span className="pulse-active pulse-danger" style={{ width: '5px', height: '5px' }}></span>
           </button>
         </div>
 
         {/* Right Utility: Clean Space / Active Indicator */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <span style={{
-            fontSize: '11px',
-            fontWeight: 600,
-            color: 'var(--text-muted)',
-            fontFamily: 'var(--font-mono)',
-            letterSpacing: '0.02em'
-          }}>
-            v2.6 • 2026 Guidelines
-          </span>
-        </div>
+        {!isMobile && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+            <span style={{
+              fontSize: '11px',
+              fontWeight: 600,
+              color: 'var(--text-muted)',
+              fontFamily: 'var(--font-mono)',
+              letterSpacing: '0.02em',
+              whiteSpace: 'nowrap'
+            }}>
+              v2.6 • 2026 Guidelines
+            </span>
+          </div>
+        )}
       </div>
     </header>
   );

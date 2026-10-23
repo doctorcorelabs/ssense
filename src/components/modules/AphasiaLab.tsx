@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Activity, Volume2, Brain, CheckCircle, RefreshCw } from 'lucide-react';
+import { useResponsive } from '../../hooks/useResponsive';
 
 type AphasiaType = 'broca' | 'wernicke' | 'anomic';
 
 export const AphasiaLab: React.FC = () => {
+  const { isMobile, isTabletPortrait } = useResponsive();
   const [activeType, setActiveType] = useState<AphasiaType>('broca');
 
   // Broca's Simulator State
@@ -67,12 +69,12 @@ export const AphasiaLab: React.FC = () => {
       </div>
 
       {/* Main Interactive Stage */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.8fr) minmax(320px, 1fr)', gap: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isTabletPortrait ? 'minmax(0, 1fr)' : 'minmax(0, 1.8fr) minmax(320px, 1fr)', gap: '24px' }}>
         {/* Left: Interactive Experiment Console */}
-        <div className="glass-card" style={{ padding: '28px' }}>
+        <div className="glass-card" style={{ padding: isMobile ? '20px' : '28px' }}>
           {activeType === 'broca' && (
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
                 <div>
                   <span className="badge badge-danger">Expressive Motor Block</span>
                   <h3 style={{ fontSize: '18px', fontWeight: 700, marginTop: '6px' }}>
@@ -120,7 +122,7 @@ export const AphasiaLab: React.FC = () => {
                     padding: '12px 16px',
                     borderRadius: 'var(--radius-md)',
                     border: '2px solid var(--glass-border)',
-                    fontSize: '15px',
+                    fontSize: '16px',
                     outline: 'none',
                     backgroundColor: 'var(--bg-raised)'
                   }}
@@ -168,7 +170,7 @@ export const AphasiaLab: React.FC = () => {
 
           {activeType === 'wernicke' && (
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
                 <div>
                   <span className="badge badge-warning">Receptive Fluent Loss</span>
                   <h3 style={{ fontSize: '18px', fontWeight: 700, marginTop: '6px' }}>
@@ -215,6 +217,11 @@ export const AphasiaLab: React.FC = () => {
                       className="btn"
                       style={{
                         justifyContent: 'flex-start',
+                        whiteSpace: 'normal',
+                        width: '100%',
+                        height: 'auto',
+                        minHeight: 48,
+                        lineHeight: 1.45,
                         textAlign: 'left',
                         padding: '14px 18px',
                         backgroundColor: wernickeSelectedOption === opt.id 
@@ -250,7 +257,7 @@ export const AphasiaLab: React.FC = () => {
 
           {activeType === 'anomic' && (
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
                 <div>
                   <span className="badge badge-synapse">Lexical Retrieval Block</span>
                   <h3 style={{ fontSize: '18px', fontWeight: 700, marginTop: '6px' }}>
@@ -297,7 +304,7 @@ export const AphasiaLab: React.FC = () => {
                 <button
                   onClick={() => setAnomicRevealed(true)}
                   className="btn btn-primary"
-                  style={{ flex: 1 }}
+                  style={{ flex: 1, whiteSpace: 'normal', height: 'auto', minHeight: 48, lineHeight: 1.45 }}
                 >
                   Retrieve the Word ("Wristwatch")
                 </button>

@@ -5,11 +5,14 @@ import {
   Sparkles,
   Activity
 } from 'lucide-react';
+import { useMediaQuery, useResponsive } from '../../hooks/useResponsive';
 
 type AgnosiaMode = 'prosopagnosia' | 'object-agnosia' | 'charles-bonnet' | 'line-bisection';
 type SampleSceneId = 'family-face' | 'breakfast-table' | 'living-room';
 
 export const AISensoryAgnosiaFilter: React.FC = () => {
+  const isStacked = useMediaQuery('(max-width: 1024px)');
+  const { isMobile } = useResponsive();
   const [activeMode, setActiveMode] = useState<AgnosiaMode>('prosopagnosia');
   const [isWebcamActive, setIsWebcamActive] = useState<boolean>(false);
   const [sampleScene, setSampleScene] = useState<SampleSceneId>('family-face');
@@ -209,9 +212,12 @@ export const AISensoryAgnosiaFilter: React.FC = () => {
   }, [activeMode, isWebcamActive, sampleScene]);
 
   // Line Bisection Click Handler
+  // Hit area is enlarged (>=32px) via a wrapper, but the ratio must still be
+  // measured against the visual bar itself so scores do not shift.
   const handleLineBisectionClick = (lineIndex: number, e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const clickRatio = (e.clientX - rect.left) / rect.width; // 0 (left) to 1 (right)
+    const barEl = e.currentTarget.querySelector<HTMLElement>('[data-bisection-bar]');
+    const rect = (barEl ?? e.currentTarget).getBoundingClientRect();
+    const clickRatio = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width)); // 0 (left) to 1 (right)
 
     setBisectionPoints((prev) => {
       const updated = [...prev];
@@ -280,7 +286,7 @@ export const AISensoryAgnosiaFilter: React.FC = () => {
       {activeMode !== 'line-bisection' ? (
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'minmax(480px, 1.5fr) minmax(320px, 1fr)',
+          gridTemplateColumns: isStacked ? '1fr' : 'minmax(480px, 1.5fr) minmax(320px, 1fr)',
           gap: '24px'
         }}>
           {/* Canvas Viewport Station */}
@@ -290,6 +296,8 @@ export const AISensoryAgnosiaFilter: React.FC = () => {
               backgroundColor: '#090d16',
               borderBottom: '1px solid #1e293b',
               display: 'flex',
+              flexWrap: 'wrap',
+              gap: '8px',
               alignItems: 'center',
               justifyContent: 'space-between'
             }}>
@@ -314,7 +322,7 @@ export const AISensoryAgnosiaFilter: React.FC = () => {
               ref={canvasRef}
               width={640}
               height={480}
-              style={{ width: '100%', height: '480px', display: 'block', backgroundColor: '#0f172a' }}
+              style={{ width: '100%', height: 'auto', aspectRatio: '4 / 3', maxWidth: '100%', display: 'block', backgroundColor: '#0f172a' }}
             />
 
             {/* Scene Selector Footer */}
@@ -323,12 +331,14 @@ export const AISensoryAgnosiaFilter: React.FC = () => {
               backgroundColor: 'var(--bg-raised)',
               borderTop: '1px solid var(--glass-border)',
               display: 'flex',
+              flexWrap: 'wrap',
+              gap: '8px',
               alignItems: 'center',
               justifyContent: 'space-between',
               fontSize: '12px'
             }}>
               <span style={{ color: 'var(--text-muted)' }}>Curated Clinical Scene:</span>
-              <div style={{ display: 'flex', gap: '8px' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                 {(Object.keys(sampleImages) as SampleSceneId[]).map((sId) => (
                   <button
                     key={sId}
@@ -386,8 +396,8 @@ export const AISensoryAgnosiaFilter: React.FC = () => {
         </div>
       ) : (
         /* Line Bisection Neglect Test */
-        <div className="glass-card" style={{ padding: '32px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <div className="glass-card" style={{ padding: isMobile ? '20px' : '32px' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <div>
               <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)' }}>
                 Albert's Line Bisection Test (Hemi-Spatial Neglect)
@@ -407,17 +417,30 @@ export const AISensoryAgnosiaFilter: React.FC = () => {
               const clickedRatio = bisectionPoints[idx];
               return (
                 <div key={idx} style={{ position: 'relative' }}>
+                  {/* Enlarged hit area (>=32px tall); visual bar stays 14px and
+                      carries data-bisection-bar so click ratio is measured on it */}
                   <div
                     onClick={(e) => handleLineBisectionClick(idx, e)}
                     style={{
-                      height: '14px',
-                      backgroundColor: '#e2e8f0',
-                      borderRadius: '8px',
-                      cursor: 'crosshair',
-                      position: 'relative',
-                      border: '1px solid #cbd5e1'
+                      minHeight: '36px',
+                      padding: '11px 0',
+                      boxSizing: 'border-box',
+                      display: 'flex',
+                      alignItems: 'center',
+                      cursor: 'crosshair'
                     }}
                   >
+                    <div
+                      data-bisection-bar=""
+                      style={{
+                        height: '14px',
+                        flex: 1,
+                        backgroundColor: '#e2e8f0',
+                        borderRadius: '8px',
+                        position: 'relative',
+                        border: '1px solid #cbd5e1'
+                      }}
+                    >
                     {/* True Center Marker */}
                     <div style={{
                       position: 'absolute',
@@ -441,6 +464,7 @@ export const AISensoryAgnosiaFilter: React.FC = () => {
                         boxShadow: '0 0 6px rgba(239, 68, 68, 0.6)'
                       }} />
                     )}
+                    </div>
                   </div>
                   {clickedRatio !== undefined && (
                     <div style={{ fontSize: '11px', color: clickedRatio > 0.6 ? '#dc2626' : '#15803d', fontWeight: 600, marginTop: '4px' }}>

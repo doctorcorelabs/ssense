@@ -4,6 +4,7 @@ import {
   CheckCircle2,
   XCircle
 } from 'lucide-react';
+import { useMediaQuery, useResponsive } from '../../hooks/useResponsive';
 
 interface TimelineMilestone {
   timeLabel: string;
@@ -20,6 +21,11 @@ interface TimelineMilestone {
 
 export const AIMultiverseTimeline: React.FC = () => {
   const [selectedHour, setSelectedHour] = useState<number>(1); // 0.2, 1, 3, 6, 24, 8760 (1 Year)
+  const isStacked = useMediaQuery('(max-width: 768px)');
+  const { isMobile, isSmallPhone } = useResponsive();
+  const metricCols = isSmallPhone ? '1fr' : 'repeat(2, 1fr)';
+  const metricFontSize = isMobile ? 'clamp(18px, 5.5vw, 22px)' : '22px';
+  const cardPadding = isMobile ? '16px' : '24px';
 
   const milestones: TimelineMilestone[] = [
     {
@@ -117,7 +123,7 @@ export const AIMultiverseTimeline: React.FC = () => {
               key={m.hourFromOnset}
               onClick={() => setSelectedHour(m.hourFromOnset)}
               className={`btn btn-sm ${selectedHour === m.hourFromOnset ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ fontSize: '12px', padding: '8px 14px' }}
+              style={{ fontSize: '12px', padding: '8px 14px', textAlign: 'left', whiteSpace: 'normal', minHeight: 44, lineHeight: 1.35 }}
             >
               {m.timeLabel}
             </button>
@@ -128,12 +134,12 @@ export const AIMultiverseTimeline: React.FC = () => {
       {/* Split-Screen Comparative Reality Arena */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(2, 1fr)',
-        gap: '24px'
+        gridTemplateColumns: isStacked ? '1fr' : 'repeat(2, 1fr)',
+        gap: isStacked ? '16px' : '24px'
       }}>
         {/* Timeline Alpha: The Fatal Delay */}
         <div className="glass-card" style={{
-          padding: '24px',
+          padding: cardPadding,
           borderTop: '4px solid #ef4444',
           display: 'flex',
           flexDirection: 'column',
@@ -154,22 +160,22 @@ export const AIMultiverseTimeline: React.FC = () => {
           {/* Biological Damage Metrics */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(2, 1fr)',
+            gridTemplateColumns: metricCols,
             gap: '12px',
             marginBottom: '20px',
             marginTop: 'auto'
           }}>
-            <div style={{ padding: '12px', backgroundColor: '#fee2e2', borderRadius: 'var(--radius-md)' }}>
+            <div style={{ padding: isMobile ? '10px' : '12px', backgroundColor: '#fee2e2', borderRadius: 'var(--radius-md)' }}>
               <div style={{ fontSize: '11px', color: '#991b1b', fontWeight: 700 }}>Infarct Core Volume</div>
-              <div style={{ fontSize: '22px', fontWeight: 800, color: '#7f1d1d', fontFamily: 'var(--font-mono)' }}>
+              <div style={{ fontSize: metricFontSize, fontWeight: 800, color: '#7f1d1d', fontFamily: 'var(--font-mono)' }}>
                 {activeMilestone.alphaCoreVol} mL
               </div>
               <span style={{ fontSize: '10.5px', color: '#b91c1c' }}>Irreversible Tissue Death</span>
             </div>
 
-            <div style={{ padding: '12px', backgroundColor: '#fee2e2', borderRadius: 'var(--radius-md)' }}>
+            <div style={{ padding: isMobile ? '10px' : '12px', backgroundColor: '#fee2e2', borderRadius: 'var(--radius-md)' }}>
               <div style={{ fontSize: '11px', color: '#991b1b', fontWeight: 700 }}>Neurons Destroyed</div>
-              <div style={{ fontSize: '22px', fontWeight: 800, color: '#7f1d1d', fontFamily: 'var(--font-mono)' }}>
+              <div style={{ fontSize: metricFontSize, fontWeight: 800, color: '#7f1d1d', fontFamily: 'var(--font-mono)' }}>
                 {activeMilestone.alphaNeuronsLost}M
               </div>
               <span style={{ fontSize: '10.5px', color: '#b91c1c' }}>Saver JL Loss Rate</span>
@@ -191,7 +197,7 @@ export const AIMultiverseTimeline: React.FC = () => {
 
         {/* Timeline Beta: The Golden Hour Protocol */}
         <div className="glass-card" style={{
-          padding: '24px',
+          padding: cardPadding,
           borderTop: '4px solid #10b981',
           display: 'flex',
           flexDirection: 'column',
@@ -212,22 +218,22 @@ export const AIMultiverseTimeline: React.FC = () => {
           {/* Biological Salvage Metrics */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(2, 1fr)',
+            gridTemplateColumns: metricCols,
             gap: '12px',
             marginBottom: '20px',
             marginTop: 'auto'
           }}>
-            <div style={{ padding: '12px', backgroundColor: '#dcfce7', borderRadius: 'var(--radius-md)' }}>
+            <div style={{ padding: isMobile ? '10px' : '12px', backgroundColor: '#dcfce7', borderRadius: 'var(--radius-md)' }}>
               <div style={{ fontSize: '11px', color: '#14532d', fontWeight: 700 }}>Infarct Core Volume</div>
-              <div style={{ fontSize: '22px', fontWeight: 800, color: '#166534', fontFamily: 'var(--font-mono)' }}>
+              <div style={{ fontSize: metricFontSize, fontWeight: 800, color: '#166534', fontFamily: 'var(--font-mono)' }}>
                 {activeMilestone.betaCoreVol} mL
               </div>
               <span style={{ fontSize: '10.5px', color: '#15803d' }}>Minimal Focal Scar</span>
             </div>
 
-            <div style={{ padding: '12px', backgroundColor: '#dcfce7', borderRadius: 'var(--radius-md)' }}>
+            <div style={{ padding: isMobile ? '10px' : '12px', backgroundColor: '#dcfce7', borderRadius: 'var(--radius-md)' }}>
               <div style={{ fontSize: '11px', color: '#14532d', fontWeight: 700 }}>Neurons Destroyed</div>
-              <div style={{ fontSize: '22px', fontWeight: 800, color: '#166534', fontFamily: 'var(--font-mono)' }}>
+              <div style={{ fontSize: metricFontSize, fontWeight: 800, color: '#166534', fontFamily: 'var(--font-mono)' }}>
                 {activeMilestone.betaNeuronsLost}M
               </div>
               <span style={{ fontSize: '10.5px', color: '#15803d' }}>~94% Brain Tissue Rescued</span>

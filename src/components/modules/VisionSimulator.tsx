@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Eye, Camera, CameraOff, Info, HelpCircle } from 'lucide-react';
+import { useResponsive } from '../../hooks/useResponsive';
 
 type VisionDeficit = 'hemianopia-left' | 'hemianopia-right' | 'diplopia' | 'neglect-left' | 'scotoma';
 
 export const VisionSimulator: React.FC = () => {
+  const { isMobile, isTabletPortrait } = useResponsive();
   const [selectedDeficit, setSelectedDeficit] = useState<VisionDeficit>('hemianopia-left');
   const [isWebcamActive, setIsWebcamActive] = useState<boolean>(false);
   const [sampleScene, setSampleScene] = useState<'reading' | 'meal' | 'room'>('meal');
@@ -50,7 +52,7 @@ export const VisionSimulator: React.FC = () => {
     let stream: MediaStream | null = null;
 
     if (isWebcamActive) {
-      navigator.mediaDevices?.getUserMedia({ video: { width: 640, height: 480 } })
+      navigator.mediaDevices?.getUserMedia({ video: { width: { ideal: 1280 }, height: { ideal: 720 } } })
         .then((s) => {
           stream = s;
           if (videoRef.current) {
@@ -180,7 +182,7 @@ export const VisionSimulator: React.FC = () => {
                 key={key}
                 onClick={() => setSelectedDeficit(key)}
                 className={`btn ${isSelected ? 'btn-primary' : 'btn-secondary'}`}
-                style={{ fontSize: '13px', padding: '8px 16px' }}
+                style={{ fontSize: '13px', padding: '8px 16px', whiteSpace: 'normal', maxWidth: '100%', height: 'auto', lineHeight: 1.3, textAlign: 'center' }}
               >
                 {deficits[key].title}
               </button>
@@ -190,10 +192,10 @@ export const VisionSimulator: React.FC = () => {
       </div>
 
       {/* Main Viewport & Interactive Display */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.8fr) minmax(320px, 1fr)', gap: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isTabletPortrait ? 'minmax(0, 1fr)' : 'minmax(0, 1.8fr) minmax(320px, 1fr)', gap: '24px' }}>
         {/* Left: Interactive Canvas Viewport */}
         <div className="glass-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 12px', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span className="pulse-active"></span>
               <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-primary)' }}>
@@ -255,8 +257,9 @@ export const VisionSimulator: React.FC = () => {
                   }}>
                     {/* Simulated Table Scene */}
                     <div style={{
-                      width: '260px',
-                      height: '260px',
+                      width: 'min(260px, 74%)',
+                      maxWidth: '100%',
+                      aspectRatio: '1 / 1',
                       borderRadius: '50%',
                       backgroundColor: 'rgba(255, 255, 255, 0.04)',
                       border: '2px solid rgba(0, 245, 255, 0.3)',
@@ -266,22 +269,22 @@ export const VisionSimulator: React.FC = () => {
                       alignItems: 'center',
                       justifyContent: 'center'
                     }}>
-                      <div style={{ position: 'absolute', left: '30px', top: '70px', textAlign: 'center' }}>
-                        <span style={{ fontSize: '32px' }}>🥗</span>
-                        <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)' }}>Fresh Salad</div>
+                      <div style={{ position: 'absolute', left: '10%', top: '26%', textAlign: 'center' }}>
+                        <span style={{ fontSize: isMobile ? '24px' : '32px' }}>🥗</span>
+                        <div style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--text-primary)' }}>Fresh Salad</div>
                       </div>
-                      <div style={{ position: 'absolute', right: '30px', top: '70px', textAlign: 'center' }}>
-                        <span style={{ fontSize: '32px' }}>🍗</span>
-                        <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)' }}>Roast Chicken</div>
+                      <div style={{ position: 'absolute', right: '10%', top: '26%', textAlign: 'center' }}>
+                        <span style={{ fontSize: isMobile ? '24px' : '32px' }}>🍗</span>
+                        <div style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--text-primary)' }}>Roast Chicken</div>
                       </div>
-                      <div style={{ position: 'absolute', bottom: '30px', textAlign: 'center' }}>
-                        <span style={{ fontSize: '28px' }}>🍚</span>
-                        <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)' }}>Steamed Rice</div>
+                      <div style={{ position: 'absolute', bottom: '10%', textAlign: 'center' }}>
+                        <span style={{ fontSize: isMobile ? '22px' : '28px' }}>🍚</span>
+                        <div style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--text-primary)' }}>Steamed Rice</div>
                       </div>
                     </div>
                     {/* Fork & Knife */}
-                    <div style={{ position: 'absolute', left: '40px', fontSize: '36px' }}>🍴</div>
-                    <div style={{ position: 'absolute', right: '40px', fontSize: '36px' }}>🥛</div>
+                    <div style={{ position: 'absolute', left: '5%', fontSize: isMobile ? '28px' : '36px' }}>🍴</div>
+                    <div style={{ position: 'absolute', right: '5%', fontSize: isMobile ? '28px' : '36px' }}>🥛</div>
                   </div>
                 )}
 
@@ -289,14 +292,16 @@ export const VisionSimulator: React.FC = () => {
                   <div style={{
                     width: '100%',
                     height: '100%',
+                    maxWidth: '100%',
+                    overflowY: isMobile ? 'auto' : undefined,
                     backgroundColor: 'rgba(10, 13, 18, 0.95)',
-                    padding: '36px 48px',
+                    padding: isMobile ? '18px 16px' : '36px 48px',
                     color: 'var(--text-primary)',
                     fontFamily: 'Inter, system-ui, sans-serif',
                     lineHeight: 1.8,
                     fontSize: '14.5px'
                   }}>
-                    <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '20px', marginBottom: '14px', color: 'var(--cyan-neon)' }}>
+                    <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: isMobile ? '17px' : '20px', marginBottom: '14px', color: 'var(--cyan-neon)' }}>
                       The Recovery of Neural Function
                     </h3>
                     <p style={{ color: 'var(--text-secondary)' }}>
@@ -314,10 +319,12 @@ export const VisionSimulator: React.FC = () => {
                     height: '100%',
                     background: 'radial-gradient(circle at center, rgba(30, 41, 59, 0.4) 0%, rgba(5, 7, 9, 0.95) 100%)',
                     display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '12px',
                     alignItems: 'center',
                     justifyContent: 'space-around',
-                    padding: '30px',
-                    fontSize: '48px'
+                    padding: isMobile ? '16px' : '30px',
+                    fontSize: isMobile ? '32px' : '48px'
                   }}>
                     <div style={{ textAlign: 'center' }}>
                       <span>🚪</span>
@@ -389,8 +396,9 @@ export const VisionSimulator: React.FC = () => {
                     top: '50%',
                     left: '50%',
                     transform: 'translate(-50%, -50%)',
-                    width: '240px',
-                    height: '240px',
+                    width: 'min(240px, 58%)',
+                    maxWidth: '100%',
+                    aspectRatio: '1 / 1',
                     borderRadius: '50%',
                     background: 'radial-gradient(circle, rgba(15, 23, 42, 0.95) 40%, rgba(15, 23, 42, 0) 100%)',
                     pointerEvents: 'none'
@@ -402,11 +410,11 @@ export const VisionSimulator: React.FC = () => {
 
           {/* Scenario Toggles (When camera is off) */}
           {!isWebcamActive && (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 12px', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0' }}>
               <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)' }}>
                 Test Scenarios:
               </span>
-              <div style={{ display: 'flex', gap: '8px' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                 <button
                   onClick={() => setSampleScene('meal')}
                   className={`btn btn-sm ${sampleScene === 'meal' ? 'btn-primary' : 'btn-secondary'}`}
